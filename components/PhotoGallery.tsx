@@ -43,32 +43,41 @@ export default function PhotoGallery({ photos }: PhotoGalleryProps) {
               onMouseEnter={() => setHoveredIndex(index)}
               onMouseLeave={() => setHoveredIndex(null)}
             >
-              <Image
-                src={photo.src}
-                alt={photo.alt}
-                fill
-                className={`object-cover transition-transform duration-300 ${
-                  isHovered ? 'scale-110' : 'scale-100'
-                }`}
-                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-              />
-              {photo.country && (
-                <div
-                  className={`absolute inset-0 flex items-center justify-center transition-all duration-300 z-10 pointer-events-none ${
-                    isHovered ? 'bg-black/50' : 'bg-black/0'
-                  }`}
-                >
+              <div className="absolute inset-0">
+                <Image
+                  src={photo.src}
+                  alt={photo.alt}
+                  fill
+                  className="object-cover transition-transform duration-300"
+                  style={{
+                    transform: isHovered ? 'scale(1.1)' : 'scale(1)',
+                  }}
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                />
+              </div>
+              {/* Overlay that appears on hover */}
+              <div
+                className="absolute inset-0 flex items-center justify-center pointer-events-none"
+                style={{
+                  backgroundColor: isHovered ? 'rgba(0, 0, 0, 0.6)' : 'transparent',
+                  transition: 'background-color 0.3s ease',
+                  zIndex: 20,
+                }}
+              >
+                {photo.country && (
                   <span
-                    className={`text-white text-xl font-semibold transition-all duration-300 transform ${
-                      isHovered
-                        ? 'opacity-100 translate-y-0'
-                        : 'opacity-0 translate-y-4'
-                    }`}
+                    className="text-white text-xl font-bold"
+                    style={{
+                      textShadow: '2px 2px 8px rgba(0, 0, 0, 1), 0 0 10px rgba(0, 0, 0, 0.5)',
+                      opacity: isHovered ? 1 : 0,
+                      transform: isHovered ? 'translateY(0)' : 'translateY(1rem)',
+                      transition: 'opacity 0.3s ease, transform 0.3s ease',
+                    }}
                   >
                     {photo.country}
                   </span>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           );
         })}

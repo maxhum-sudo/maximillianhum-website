@@ -47,10 +47,10 @@ function getPhotos(): Photo[] {
     })
     .map((file) => {
       // Try to find metadata with exact filename match first
-      let photoData = metadata[file] || {};
+      let photoData = metadata[file];
       
       // If not found, try case-insensitive match
-      if (!photoData.country) {
+      if (!photoData || !photoData.country) {
         const fileLower = file.toLowerCase();
         const matchingKey = Object.keys(metadata).find(
           (key) => key.toLowerCase() === fileLower
@@ -63,7 +63,7 @@ function getPhotos(): Photo[] {
       return {
         src: `/images/${file}`,
         alt: path.parse(file).name.replace(/[-_]/g, ' '),
-        country: photoData.country,
+        country: photoData?.country || undefined,
       };
     });
 }
