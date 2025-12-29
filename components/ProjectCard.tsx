@@ -1,6 +1,18 @@
 import Link from 'next/link';
 import Image from 'next/image';
 
+// Get basePath from Next.js config (for static exports)
+const getBasePath = () => {
+  if (typeof window !== 'undefined') {
+    // Check if we're on GitHub Pages by checking the pathname
+    const pathname = window.location.pathname;
+    if (pathname.startsWith('/maximillianhum-website')) {
+      return '/maximillianhum-website';
+    }
+  }
+  return '';
+};
+
 export interface Project {
   name: string;
   description: string;
@@ -19,7 +31,7 @@ export default function ProjectCard({ project }: ProjectCardProps) {
       {project.image && (
         <div className="relative w-full h-48">
           <Image
-            src={project.image}
+            src={`${getBasePath()}${project.image}`}
             alt={project.name}
             fill
             className="object-cover"

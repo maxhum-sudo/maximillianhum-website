@@ -3,6 +3,18 @@
 import { useState } from 'react';
 import Image from 'next/image';
 
+// Get basePath from Next.js config (for static exports)
+const getBasePath = () => {
+  if (typeof window !== 'undefined') {
+    // Check if we're on GitHub Pages by checking the pathname
+    const pathname = window.location.pathname;
+    if (pathname.startsWith('/maximillianhum-website')) {
+      return '/maximillianhum-website';
+    }
+  }
+  return '';
+};
+
 interface Photo {
   src: string;
   alt: string;
@@ -45,7 +57,7 @@ export default function PhotoGallery({ photos }: PhotoGalleryProps) {
             >
               <div className="absolute inset-0">
                 <Image
-                  src={photo.src}
+                  src={`${getBasePath()}${photo.src}`}
                   alt={photo.alt}
                   fill
                   className="object-cover transition-transform duration-300"
@@ -96,7 +108,7 @@ export default function PhotoGallery({ photos }: PhotoGalleryProps) {
               ×
             </button>
             <Image
-              src={selectedPhoto.src}
+              src={`${getBasePath()}${selectedPhoto.src}`}
               alt={selectedPhoto.alt}
               width={selectedPhoto.width || 1200}
               height={selectedPhoto.height || 800}
