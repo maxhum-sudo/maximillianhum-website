@@ -4,10 +4,9 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  // If deploying to a subdirectory (e.g., username.github.io/repo-name)
-  // uncomment and set your repository name:
-  // basePath: '/your-repo-name',
-  // trailingSlash: true,
+  // Base path for GitHub Pages subdirectory deployment
+  basePath: '/maximillianhum-website',
+  trailingSlash: true,
 }
 
 module.exports = nextConfig
