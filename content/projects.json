@@ -1,0 +1,23 @@
+[
+  {
+    "name": "Project 1: To do list",
+    "description": "My first project with Cursor was to make a to do list. Users can add to do items and share them with others via email.",
+    "link": "https://sharetodolist.netlify.app",
+    "image": "/projects/todolistScreenshot.png",
+    "tags": ["React", "TypeScript", "Next.js"]
+  },
+  {
+    "name": "Project 2: Life Cost Calculator",
+    "description": "A calculator application that helps users estimate the cost of living in a given location.",
+    "link": "https://lifecost.netlify.app",
+    "image": "/projects/LifeCostScreenshot.png",
+    "tags": ["React", "TypeScript", "Next.js"]
+  },
+  {
+    "name": "Project 3: Canadian Tax Optimization Calculator",
+  "description": "A quick tool to help optimize which tax account to use to maximize tax savings.",
+    "link": "https://can-taxcalc.netlify.app",
+    "image": "/projects/Can-TaxcalcScreenshot.png",
+    "tags": ["React", "TypeScript", "Next.js"]
+  }
+]
