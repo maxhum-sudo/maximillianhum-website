@@ -1,18 +1,28 @@
 'use client';
 
 import { useState } from 'react';
-import Image from 'next/image';
 
 // Get basePath from Next.js config (for static exports)
+// For GitHub Pages, basePath is '/maximillianhum-website'
 const getBasePath = () => {
   if (typeof window !== 'undefined') {
-    // Check if we're on GitHub Pages by checking the pathname
     const pathname = window.location.pathname;
+    // Check if we're on GitHub Pages
     if (pathname.startsWith('/maximillianhum-website')) {
       return '/maximillianhum-website';
     }
   }
   return '';
+};
+
+// Helper to get image src with basePath
+const getImageSrc = (src: string) => {
+  const basePath = getBasePath();
+  // Remove leading slash if basePath is empty to avoid double slashes
+  if (!basePath && src.startsWith('/')) {
+    return src;
+  }
+  return `${basePath}${src}`;
 };
 
 interface Photo {
@@ -55,18 +65,14 @@ export default function PhotoGallery({ photos }: PhotoGalleryProps) {
               onMouseEnter={() => setHoveredIndex(index)}
               onMouseLeave={() => setHoveredIndex(null)}
             >
-              <div className="absolute inset-0">
-                <Image
-                  src={`${getBasePath()}${photo.src}`}
-                  alt={photo.alt}
-                  fill
-                  className="object-cover transition-transform duration-300"
-                  style={{
-                    transform: isHovered ? 'scale(1.1)' : 'scale(1)',
-                  }}
-                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                />
-              </div>
+              <img
+                src={getImageSrc(photo.src)}
+                alt={photo.alt}
+                className="absolute inset-0 w-full h-full object-cover transition-transform duration-300"
+                style={{
+                  transform: isHovered ? 'scale(1.1)' : 'scale(1)',
+                }}
+              />
               {/* Overlay that appears on hover */}
               <div
                 className="absolute inset-0 flex items-center justify-center pointer-events-none"
@@ -107,11 +113,9 @@ export default function PhotoGallery({ photos }: PhotoGalleryProps) {
             >
               ×
             </button>
-            <Image
-              src={`${getBasePath()}${selectedPhoto.src}`}
+            <img
+              src={getImageSrc(selectedPhoto.src)}
               alt={selectedPhoto.alt}
-              width={selectedPhoto.width || 1200}
-              height={selectedPhoto.height || 800}
               className="max-w-full max-h-[90vh] object-contain"
             />
             {selectedPhoto.country && (
