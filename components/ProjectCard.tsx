@@ -1,3 +1,5 @@
+'use client';
+
 import Link from 'next/link';
 
 // Get basePath from Next.js config (for static exports)
@@ -13,11 +15,14 @@ const getBasePath = () => {
 
 // Helper to get image src with basePath
 const getImageSrc = (src: string) => {
+  if (!src) return '';
   const basePath = getBasePath();
-  if (!basePath && src.startsWith('/')) {
-    return src;
+  // Ensure src starts with / for proper path construction
+  const cleanSrc = src.startsWith('/') ? src : `/${src}`;
+  if (!basePath) {
+    return cleanSrc;
   }
-  return `${basePath}${src}`;
+  return `${basePath}${cleanSrc}`;
 };
 
 export interface Project {
