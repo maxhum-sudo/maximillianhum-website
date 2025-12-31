@@ -3,9 +3,16 @@
 import Link from 'next/link';
 
 // Get basePath from Next.js config (for static exports)
+// Custom domains serve from root, so no basePath needed
 const getBasePath = () => {
   if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname;
     const pathname = window.location.pathname;
+    // Custom domain serves from root - no basePath needed
+    if (hostname === 'maximillianhum.com' || hostname === 'www.maximillianhum.com') {
+      return '';
+    }
+    // Check if we're on GitHub Pages subdirectory
     if (pathname.startsWith('/maximillianhum-website')) {
       return '/maximillianhum-website';
     }
