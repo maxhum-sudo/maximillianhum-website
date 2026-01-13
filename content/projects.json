@@ -19,5 +19,12 @@
     "link": "https://can-taxcalc.netlify.app",
     "image": "/projects/Can-TaxcalcScreenshot.png",
     "tags": ["React", "TypeScript", "Next.js"]
+  },
+  {
+    "name": "Project 4: Space bar counter game",
+    "description": "An interactive game that challenges players to count space bar presses.",
+    "link": "https://claude.ai/public/artifacts/bde52c7c-4fde-4242-91fc-0d3544d1f8c7",
+    "image": "/projects/Project 4 Space Bar Counter Game.png",
+    "tags": ["React", "TypeScript", "Next.js"]
   }
 ]
