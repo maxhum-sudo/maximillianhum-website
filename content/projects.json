@@ -31,6 +31,7 @@
     "name": "Project 5: Speed Reading App",
     "description": "A minimalist web-based speed reading application with AI-powered comprehension quizzes. Read text one word at a time with adjustable speed and take quizzes to test your comprehension.",
     "link": "/speed-reading-app",
+    "image": "/projects/speed-reading-app-screenshot.png",
     "tags": ["HTML", "CSS", "JavaScript"]
   }
 ]
