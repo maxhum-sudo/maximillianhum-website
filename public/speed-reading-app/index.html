@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Speed Reading App</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Input View -->
+    <div id="inputView" class="view">
+        <div class="container">
+            <h1>Speed Reading App</h1>
+            <p class="instructions">Paste your text below and press Start to begin reading</p>
+            
+            <textarea id="textInput" placeholder="Paste your text here..."></textarea>
+            
+            <div class="input-controls">
+                <button id="startBtn" class="btn btn-primary">Start Reading</button>
+                <button id="clearBtn" class="btn btn-secondary">Clear</button>
+                <span id="wordCount" class="word-count">0 words</span>
+            </div>
+
+            <!-- Configuration Panel -->
+            <div class="config-panel">
+                <h2>Settings</h2>
+                
+                <!-- Speed Control -->
+                <div class="control-group">
+                    <label for="speedSlider">Speed: <span id="speedValue">300</span> WPM</label>
+                    <input type="range" id="speedSlider" min="100" max="1000" value="300" step="10">
+                </div>
+
+                <!-- Focal Point Control -->
+                <div class="control-group">
+                    <label for="focalPointSelect">Red Letter Position:</label>
+                    <select id="focalPointSelect">
+                        <option value="0">First Letter</option>
+                        <option value="0.33" selected>1/3 Position (Recommended)</option>
+                        <option value="0.5">Center</option>
+                        <option value="0.67">2/3 Position</option>
+                    </select>
+                </div>
+
+                <!-- Theme Control -->
+                <div class="control-group">
+                    <label for="themeSelect">Color Theme:</label>
+                    <select id="themeSelect">
+                        <option value="dark">White on Dark</option>
+                        <option value="light">Dark on White</option>
+                        <option value="sepia">Brown on Sepia</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quiz Setup View -->
+    <div id="quizSetupView" class="view hidden">
+        <div class="container">
+            <h1>Quiz Setup</h1>
+            <p class="instructions">Configure your comprehension quiz</p>
+
+            <div class="config-panel">
+                <div class="control-group">
+                    <label for="apiKeyInput">OpenAI API Key (stored locally):</label>
+                    <input type="password" id="apiKeyInput" placeholder="sk-...">
+                    <small style="opacity: 0.7; display: block; margin-top: 0.5rem;">
+                        Get your API key from <a href="https://platform.openai.com/api-keys" target="_blank" style="color: var(--btn-primary);">OpenAI</a>. 
+                        It's stored locally in your browser only.
+                    </small>
+                </div>
+
+                <div class="control-group">
+                    <label for="numQuestions">Number of Questions:</label>
+                    <select id="numQuestions">
+                        <option value="3">3 Questions</option>
+                        <option value="5" selected>5 Questions</option>
+                        <option value="10">10 Questions</option>
+                        <option value="15">15 Questions</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <label for="difficulty">Difficulty:</label>
+                    <select id="difficulty">
+                        <option value="easy">Easy - Basic recall</option>
+                        <option value="medium" selected>Medium - Understanding</option>
+                        <option value="hard">Hard - Analysis & inference</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <label for="feedbackTiming">Feedback Timing:</label>
+                    <select id="feedbackTiming">
+                        <option value="immediate" selected>Immediate - After each question</option>
+                        <option value="end">At End - After all questions</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="input-controls">
+                <button id="generateQuizBtn" class="btn btn-primary">Generate Quiz</button>
+                <button id="backToInputBtn" class="btn btn-secondary">Back</button>
+            </div>
+
+            <div id="quizGenerationStatus" class="status-message hidden"></div>
+        </div>
+    </div>
+
+    <!-- Quiz View -->
+    <div id="quizView" class="view hidden">
+        <div class="container">
+            <div class="quiz-header">
+                <h2>Comprehension Quiz</h2>
+                <div class="quiz-progress">
+                    <span id="quizProgressText">Question 1 of 5</span>
+                    <span id="quizScore" class="hidden">Score: <span id="scoreValue">0</span>/<span id="totalQuestions">5</span></span>
+                </div>
+            </div>
+
+            <div id="questionContainer" class="question-container">
+                <h3 id="questionText" class="question-text"></h3>
+                <div id="optionsContainer" class="options-container"></div>
+            </div>
+
+            <div id="feedbackContainer" class="feedback-container hidden"></div>
+
+            <div class="quiz-controls">
+                <button id="submitAnswerBtn" class="btn btn-primary">Submit Answer</button>
+                <button id="nextQuestionBtn" class="btn btn-primary hidden">Next Question</button>
+                <button id="finishQuizBtn" class="btn btn-primary hidden">Finish Quiz</button>
+                <button id="exitQuizBtn" class="btn btn-secondary">Exit Quiz</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quiz Results View -->
+    <div id="quizResultsView" class="view hidden">
+        <div class="container">
+            <h1>Quiz Results</h1>
+            
+            <div class="results-summary">
+                <div class="score-display">
+                    <div class="score-circle">
+                        <span id="finalScore">0</span>
+                        <span class="score-divider">/</span>
+                        <span id="finalTotal">0</span>
+                    </div>
+                    <p id="scorePercentage" class="score-percentage">0%</p>
+                </div>
+            </div>
+
+            <div id="resultsDetails" class="results-details"></div>
+
+            <div class="input-controls">
+                <button id="retakeQuizBtn" class="btn btn-primary">Retake Quiz</button>
+                <button id="backToReadingBtn" class="btn btn-secondary">Back to Reading</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reading View -->
+    <div id="readingView" class="view hidden">
+        <div class="reading-container">
+            <div id="wordDisplay" class="word-display">
+                <span id="wordBefore"></span><span id="wordFocal" class="focal-letter"></span><span id="wordAfter"></span>
+            </div>
+        </div>
+
+        <!-- Reading Controls -->
+        <div class="reading-controls">
+            <button id="playPauseBtn" class="btn btn-control">
+                <span class="play-icon">▶</span>
+                <span class="pause-icon hidden">⏸</span>
+            </button>
+            <button id="resetBtn" class="btn btn-control">↻</button>
+            <button id="takeQuizBtn" class="btn btn-control" title="Take Quiz">📝</button>
+            <button id="exitBtn" class="btn btn-control">Exit</button>
+            <div class="progress-info">
+                <span id="progressText">0 / 0</span>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
