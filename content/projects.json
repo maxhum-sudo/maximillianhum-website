@@ -33,5 +33,12 @@
     "link": "/speed-reading-app",
     "image": "/projects/speed-reading-app-screenshot.png",
     "tags": ["HTML", "CSS", "JavaScript"]
+  },
+  {
+    "name": "Project 6: Buy vs Rent Calculator",
+    "description": "Compare buying a home vs renting and investing. See your net worth, affordability, and optionality over time with this comprehensive calculator.",
+    "link": "/buyorrent",
+    "image": "/projects/BuyorRentScreenshot.png",
+    "tags": ["React", "Next.js", "TypeScript"]
   }
 ]
