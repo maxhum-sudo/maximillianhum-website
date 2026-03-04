@@ -5,20 +5,39 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Speed Reading App</title>
     <link rel="stylesheet" href="styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 </head>
 <body>
     <!-- Input View -->
     <div id="inputView" class="view">
         <div class="container">
             <h1>Speed Reading App</h1>
-            <p class="instructions">Paste your text below and press Start to begin reading</p>
+            <p class="instructions">Paste your text below, or upload a PDF file</p>
+            
+            <div class="file-upload-section">
+                <label for="pdfInput" class="file-upload-label">
+                    <span class="upload-icon">📄</span>
+                    <span>Upload PDF</span>
+                    <input type="file" id="pdfInput" accept=".pdf" style="display: none;">
+                </label>
+                <span id="pdfFileName" class="pdf-file-name"></span>
+            </div>
             
             <textarea id="textInput" placeholder="Paste your text here..."></textarea>
             
             <div class="input-controls">
                 <button id="startBtn" class="btn btn-primary">Start Reading</button>
+                <button id="viewBookmarksFromInputBtn" class="btn btn-secondary hidden">View Bookmarks</button>
                 <button id="clearBtn" class="btn btn-secondary">Clear</button>
-                <span id="wordCount" class="word-count">0 words</span>
+                <div class="word-stats">
+                    <span id="wordCount" class="word-count">0 words</span>
+                    <span id="cursorPosition" class="cursor-position">Cursor at word: 1</span>
+                </div>
+            </div>
+
+            <div class="start-position-section">
+                <label for="startWordInput">Start at word number (optional):</label>
+                <input type="number" id="startWordInput" min="1" placeholder="1">
             </div>
 
             <!-- Configuration Panel -->
@@ -33,23 +52,23 @@
 
                 <!-- Focal Point Control -->
                 <div class="control-group">
-                    <label for="focalPointSelect">Red Letter Position:</label>
-                    <select id="focalPointSelect">
-                        <option value="0">First Letter</option>
-                        <option value="0.33" selected>1/3 Position (Recommended)</option>
-                        <option value="0.5">Center</option>
-                        <option value="0.67">2/3 Position</option>
-                    </select>
+                    <label>Red Letter Position:</label>
+                    <div class="button-group">
+                        <button class="btn-option" data-focal="0">First</button>
+                        <button class="btn-option active" data-focal="0.33">1/3 (Recommended)</button>
+                        <button class="btn-option" data-focal="0.5">Center</button>
+                        <button class="btn-option" data-focal="0.67">2/3</button>
+                    </div>
                 </div>
 
                 <!-- Theme Control -->
                 <div class="control-group">
-                    <label for="themeSelect">Color Theme:</label>
-                    <select id="themeSelect">
-                        <option value="dark">White on Dark</option>
-                        <option value="light">Dark on White</option>
-                        <option value="sepia">Brown on Sepia</option>
-                    </select>
+                    <label>Color Theme:</label>
+                    <div class="button-group">
+                        <button class="btn-option" data-theme="dark">White on Dark</button>
+                        <button class="btn-option" data-theme="light">Dark on White</button>
+                        <button class="btn-option active" data-theme="sepia">Brown on Sepia</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -160,6 +179,21 @@
         </div>
     </div>
 
+    <!-- Bookmarks View -->
+    <div id="bookmarksView" class="view hidden">
+        <div class="container">
+            <h1>My Bookmarks</h1>
+            <p class="instructions" id="bookmarksCount">0 bookmarks saved</p>
+            
+            <div id="bookmarksList" class="bookmarks-list"></div>
+
+            <div class="input-controls">
+                <button id="backToReadingFromBookmarks" class="btn btn-primary">Back to Reading</button>
+                <button id="clearAllBookmarksBtn" class="btn btn-secondary">Clear All Bookmarks</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Reading View -->
     <div id="readingView" class="view hidden">
         <div class="reading-container">
@@ -170,15 +204,22 @@
 
         <!-- Reading Controls -->
         <div class="reading-controls">
-            <button id="playPauseBtn" class="btn btn-control">
+            <button id="backFiveSecondsBtn" class="btn btn-control" title="Go back 5 seconds (B)">⏪</button>
+            <button id="playPauseBtn" class="btn btn-control" title="Play / Pause (Space)">
                 <span class="play-icon">▶</span>
                 <span class="pause-icon hidden">⏸</span>
             </button>
-            <button id="resetBtn" class="btn btn-control">↻</button>
+            <button id="resetBtn" class="btn btn-control" title="Reset to beginning (R)">↻</button>
+            <button id="bookmarkBtn" class="btn btn-control" title="Add bookmark at current position (M)">
+                <img src="bookmark-icon.png" alt="Bookmark" class="bookmark-icon">
+            </button>
+            <button id="viewBookmarksBtn" class="btn btn-control" title="View all bookmarks (V)">📚</button>
             <button id="takeQuizBtn" class="btn btn-control" title="Take Quiz">📝</button>
-            <button id="exitBtn" class="btn btn-control">Exit</button>
+            <button id="exitBtn" class="btn btn-control" title="Exit reading (Esc)">Exit</button>
             <div class="progress-info">
-                <span id="progressText">0 / 0</span>
+                <input type="number" id="currentWordInput" min="1" title="Jump to word number (press Enter)">
+                <span class="progress-divider">/</span>
+                <span id="totalWordsDisplay">0</span>
             </div>
         </div>
     </div>
