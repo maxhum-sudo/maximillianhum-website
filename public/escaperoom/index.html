@@ -1180,7 +1180,9 @@ function loop(){
 document.getElementById('startBtn').addEventListener('click', ()=>{
   document.getElementById('start').classList.add('gone');
   document.getElementById('ui').classList.add('on');
-  renderer.domElement.requestPointerLock();
+  // Don't auto-enter pointer lock: it can prevent clicking UI
+  // (hint button, keypad, modal controls) until the user presses Escape.
+  // Click-and-drag look still works without pointer lock.
 });
 
 window.closeModal = closeModal;
