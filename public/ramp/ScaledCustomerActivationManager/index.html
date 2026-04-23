@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Where Onboarding Breaks — Max Hum for Ramp</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ── Text selection ── */
+    ::selection      { background: #e4f222; color: #1a1915; }
+    ::-moz-selection { background: #e4f222; color: #1a1915; }
+
+    /* ── Tokens ── */
+    :root {
+      --accent:   #e4f222;
+      --acc-dim:  rgba(228, 242, 34, 0.14);
+      --acc-mid:  rgba(228, 242, 34, 0.45);
+      --bg:       #ffffff;
+      --bg-soft:  #f8f7f2;
+      --bg-card:  #f3f2ec;
+      --border:   #e5e3da;
+      --text:     #1a1915;
+      --muted:    #6b6960;
+      --faint:    #a8a69d;
+      --blue:     #1a56db;
+      --green:    #0d7a3e;
+      --purple:   #6b3fa0;
+      --amber:    #6b7200;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'TWK Lausanne', 'Lausanne', 'Inter', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+      font-size: 18px;
+      line-height: 1.72;
+      background: var(--bg);
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Nav ── */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: rgba(255,255,255,0.95);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 40px;
+    }
+
+    .nav-left { display: flex; align-items: center; gap: 8px; }
+
+    .nav-logo {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--text);
+      letter-spacing: -0.04em;
+      text-decoration: none;
+    }
+
+    .nav-sep { color: var(--faint); font-size: 14px; }
+
+    .nav-crumb {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--muted);
+    }
+
+    .nav-cta {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      background: var(--accent);
+      padding: 8px 18px;
+      border-radius: 6px;
+      text-decoration: none;
+      letter-spacing: -0.01em;
+    }
+
+    .nav-cta:hover { opacity: 0.88; }
+
+    /* ── Article shell ── */
+    .article {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 0 32px 100px;
+    }
+
+    /* ── Hero ── */
+    .hero { padding: 60px 0 48px; border-bottom: 1px solid var(--border); }
+
+    .hero-tag {
+      display: inline-block;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 20px;
+    }
+
+    h1 {
+      font-size: 40px;
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: -0.03em;
+      color: var(--text);
+      margin-bottom: 20px;
+    }
+
+    .hero-deck {
+      font-size: 20px;
+      line-height: 1.55;
+      color: var(--muted);
+      margin-bottom: 32px;
+      font-weight: 400;
+    }
+
+    .byline {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    .byline-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--text);
+      flex-shrink: 0;
+    }
+
+    .byline-name { font-weight: 600; color: var(--text); }
+    .byline-dot { color: var(--faint); }
+
+    /* ── Stats strip ── */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      background: var(--bg-soft);
+      margin: 40px 0 0;
+    }
+
+    .stat {
+      padding: 20px 22px;
+      border-right: 1px solid var(--border);
+    }
+
+    .stat:last-child { border-right: none; }
+
+    .stat-n {
+      font-size: 30px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1;
+      margin-bottom: 6px;
+      color: var(--text);
+    }
+
+    .stat-n.hi {
+      background: var(--accent);
+      display: inline-block;
+      padding: 1px 6px;
+      border-radius: 4px;
+    }
+
+    .stat-l {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+
+    /* ── Body sections ── */
+    .body-section { padding: 48px 0; border-bottom: 1px solid var(--border); }
+    .body-section:last-child { border-bottom: none; }
+
+    .body-section p { margin-bottom: 20px; }
+    .body-section p:last-child { margin-bottom: 0; }
+
+    /* ── Section header ── */
+    .sec-kicker {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--faint);
+      margin-bottom: 32px;
+    }
+
+    /* ── Friction points ── */
+    .fp { margin-bottom: 52px; }
+    .fp:last-child { margin-bottom: 0; }
+
+    .fp-header {
+      display: flex;
+      align-items: baseline;
+      gap: 16px;
+      margin-bottom: 28px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .fp-num {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--faint);
+      letter-spacing: 0.05em;
+      flex-shrink: 0;
+    }
+
+    .fp-title-wrap {}
+
+    .fp-title {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 1.25;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .fp-sub {
+      font-size: 13px;
+      color: var(--faint);
+    }
+
+    /* Sub-blocks inside each friction point */
+    .fp-block { margin-bottom: 24px; }
+    .fp-block:last-child { margin-bottom: 0; }
+
+    .fp-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .fp-label::before {
+      content: '';
+      display: block;
+      width: 3px;
+      height: 12px;
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+
+    .fp-label.what  { color: var(--blue);   }
+    .fp-label.what::before  { background: var(--blue); }
+    .fp-label.who   { color: var(--purple); }
+    .fp-label.who::before   { background: var(--purple); }
+    .fp-label.cs    { color: var(--green);  }
+    .fp-label.cs::before    { background: var(--green); }
+    .fp-label.fix   { color: var(--amber);  }
+    .fp-label.fix::before   { background: var(--amber); }
+
+    .fp-block p {
+      font-size: 17px;
+      color: var(--muted);
+      line-height: 1.7;
+      margin: 0;
+    }
+
+    .fp-block p em {
+      font-style: normal;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .tag-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 10px;
+    }
+
+    .tag {
+      font-size: 12px;
+      padding: 3px 9px;
+      border-radius: 4px;
+      background: rgba(107, 63, 160, 0.07);
+      border: 1px solid rgba(107, 63, 160, 0.18);
+      color: var(--purple);
+      line-height: 1.5;
+    }
+
+    /* Rule between friction points */
+    .fp-divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 48px 0;
+    }
+
+    /* ── Callout box ── */
+    .callout {
+      background: var(--acc-dim);
+      border-left: 3px solid var(--accent);
+      border-radius: 0 8px 8px 0;
+      padding: 28px 32px;
+    }
+
+    .callout-head {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 1.35;
+      color: var(--text);
+      margin-bottom: 14px;
+    }
+
+    .callout p {
+      font-size: 17px;
+      color: var(--muted);
+      line-height: 1.75;
+      margin: 0;
+    }
+
+    /* ── Bets ── */
+    .bet { display: flex; gap: 24px; margin-bottom: 40px; align-items: flex-start; }
+    .bet:last-child { margin-bottom: 0; }
+
+    .bet-num {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      color: var(--faint);
+      padding-top: 4px;
+      flex-shrink: 0;
+      width: 28px;
+    }
+
+    .bet-body {}
+
+    .bet-title {
+      font-size: 19px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--text);
+      margin-bottom: 10px;
+    }
+
+    .bet-text {
+      font-size: 17px;
+      color: var(--muted);
+      line-height: 1.7;
+      margin-bottom: 12px;
+    }
+
+    .bet-measure {
+      display: flex;
+      gap: 8px;
+      align-items: baseline;
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    .m-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--green);
+      flex-shrink: 0;
+    }
+
+    .bet-divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 40px 0;
+    }
+
+    /* ── Footer ── */
+    .article-footer {
+      border-top: 1px solid var(--border);
+      padding: 32px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .af-name {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.01em;
+    }
+
+    .af-role {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 3px;
+    }
+
+    .af-links {
+      display: flex;
+      gap: 20px;
+      font-size: 14px;
+    }
+
+    .af-links a {
+      color: var(--muted);
+      text-decoration: none;
+    }
+
+    .af-links a:hover {
+      color: var(--text);
+      text-decoration: underline;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 640px) {
+      nav { padding: 0 20px; }
+      .article { padding: 0 20px 72px; }
+      h1 { font-size: 30px; }
+      .hero-deck { font-size: 18px; }
+      .stats { grid-template-columns: 1fr 1fr; }
+      .stat:nth-child(2) { border-right: none; }
+      .stat:nth-child(3) { border-top: 1px solid var(--border); border-right: 1px solid var(--border); }
+      .stat:nth-child(4) { border-top: 1px solid var(--border); }
+      .bet { gap: 16px; }
+      .article-footer { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Nav ── -->
+<nav>
+  <div class="nav-left">
+    <a href="#" class="nav-logo">Ramp</a>
+    <span class="nav-sep">/</span>
+    <span class="nav-crumb">Activation Analysis</span>
+  </div>
+  <a href="mailto:maxhum@outlook.com" class="nav-cta">Get in touch</a>
+</nav>
+
+<!-- ── Article ── -->
+<div class="article">
+
+  <!-- Hero -->
+  <div class="hero">
+    <span class="hero-tag">Customer Success · Analysis</span>
+    <h1>Where Onboarding Breaks — and What to Do About It</h1>
+    <p class="hero-deck">A first-person account of stalling in Ramp's self-service flow, the customer segments that share each friction point, and the CS and product bets I'd run to recover them.</p>
+    <div class="byline">
+      <div class="byline-avatar">MH</div>
+      <div>
+        <span class="byline-name">Max Hum</span>
+        <span class="byline-dot"> · </span>
+        <span>April 2026</span>
+        <span class="byline-dot"> · </span>
+        <span>7 min read</span>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-n hi">3</div>
+        <div class="stat-l">Friction points identified</div>
+      </div>
+      <div class="stat">
+        <div class="stat-n">3</div>
+        <div class="stat-l">CS motions executable today</div>
+      </div>
+      <div class="stat">
+        <div class="stat-n">60</div>
+        <div class="stat-l">Day activation window (role SLA)</div>
+      </div>
+      <div class="stat">
+        <div class="stat-n hi">0</div>
+        <div class="stat-l">Product changes needed for Bet 01</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Context -->
+  <div class="body-section">
+    <p>I tried to bring Ramp to FascinAsian, a non-profit where I sit on the board. The product was the right fit — we needed better spend controls and a cleaner expense workflow. I started the self-service onboarding myself and hit three distinct walls. None of them were about product-market fit. All of them were solvable.</p>
+    <p>What follows is a breakdown of each friction point: exactly what happened, which customer segments share each failure mode, what the CS team can do right now, and what a product fix looks like.</p>
+  </div>
+
+  <!-- Friction Points -->
+  <div class="body-section">
+    <div class="sec-kicker">The Three Friction Points</div>
+
+    <!-- 01 -->
+    <div class="fp">
+      <div class="fp-header">
+        <span class="fp-num">01</span>
+        <div class="fp-title-wrap">
+          <div class="fp-title">No handoff to the person with access</div>
+          <div class="fp-sub">Bank connection · Accounting software integration</div>
+        </div>
+      </div>
+
+      <div class="fp-block">
+        <div class="fp-label what">What happened</div>
+        <p>To complete onboarding I needed to connect bank accounts and accounting software. I'm not the treasurer — I don't have those credentials and I'm not the right person to connect them. There was no way to hand off that step to the person who does. The entire onboarding sat with me, incomplete.</p>
+      </div>
+      <div class="fp-block">
+        <div class="fp-label who">Who else stalls here</div>
+        <p>Any organization where the person starting onboarding isn't the person with financial access. A structural pattern, not an edge case.</p>
+        <div class="tag-row">
+          <span class="tag">Non-profits (board member ≠ treasurer)</span>
+          <span class="tag">SMBs with a bookkeeper</span>
+          <span class="tag">Ops lead starts, finance owns accounts</span>
+        </div>
+      </div>
+      <div class="fp-block">
+        <div class="fp-label cs">CS motion — now</div>
+        <p>Proactive outreach at the bank connection step: <em>"Does someone else own your banking access? We can send them a link to complete just this step."</em> Recovers accounts with intent that are stuck on an internal handoff that never happens.</p>
+      </div>
+      <div class="fp-block">
+        <div class="fp-label fix">Product fix</div>
+        <p>An "invite a teammate" flow mid-onboarding: a scoped link letting the treasurer complete only the connection steps, without full admin access or starting over. The initiator stays in the loop; the right person completes their piece.</p>
+      </div>
+    </div>
+
+    <hr class="fp-divider">
+
+    <!-- 02 -->
+    <div class="fp">
+      <div class="fp-header">
+        <span class="fp-num">02</span>
+        <div class="fp-title-wrap">
+          <div class="fp-title">Signer date of birth — no context, no async path</div>
+          <div class="fp-sub">KYC verification · Signer information</div>
+        </div>
+      </div>
+
+      <div class="fp-block">
+        <div class="fp-label what">What happened</div>
+        <p>I was asked for the date of birth of the signing officer. I didn't have it. There was no explanation of why it was needed, and no option to collect it from the signer directly. The flow stopped.</p>
+      </div>
+      <div class="fp-block">
+        <div class="fp-label who">Who else stalls here</div>
+        <p>Anyone onboarding on behalf of an organization where they aren't the designated signer — common in any structured entity.</p>
+        <div class="tag-row">
+          <span class="tag">Board members</span>
+          <span class="tag">Operations leads</span>
+          <span class="tag">Administrative staff</span>
+          <span class="tag">Outsourced finance teams</span>
+        </div>
+      </div>
+      <div class="fp-block">
+        <div class="fp-label cs">CS motion — now</div>
+        <p>Pre-empt this at the start of the flow with a checklist of what's needed — including signer date of birth and the reason (KYC compliance). For accounts that stall here, follow up with a direct explanation and an async collection path.</p>
+      </div>
+      <div class="fp-block">
+        <div class="fp-label fix">Product fix</div>
+        <p>An in-flow sidebar explaining the KYC requirement with an async option: <em>"Send your signing officer a link to verify their identity."</em> Decouples the onboarding initiator from the verification requirement entirely.</p>
+      </div>
+    </div>
+
+    <hr class="fp-divider">
+
+    <!-- 03 -->
+    <div class="fp">
+      <div class="fp-header">
+        <span class="fp-num">03</span>
+        <div class="fp-title-wrap">
+          <div class="fp-title">Director upload doesn't scale past a handful</div>
+          <div class="fp-sub">Ownership structure · Director verification</div>
+        </div>
+      </div>
+
+      <div class="fp-block">
+        <div class="fp-label what">What happened</div>
+        <p>FascinAsian has 12 directors. The upload flow required individual submissions for each one. With no save-and-return option, starting meant committing to finishing. The time cost made completion feel impossible. I didn't finish.</p>
+      </div>
+      <div class="fp-block">
+        <div class="fp-label who">Who else stalls here</div>
+        <p>Any entity with a larger board or ownership structure. Not rare — just higher-friction than the median SMB the flow was built for.</p>
+        <div class="tag-row">
+          <span class="tag">Non-profits with full boards</span>
+          <span class="tag">Holding companies</span>
+          <span class="tag">Partnerships</span>
+          <span class="tag">Co-operatives</span>
+          <span class="tag">Family offices</span>
+        </div>
+      </div>
+      <div class="fp-block">
+        <div class="fp-label cs">CS motion — now</div>
+        <p>When a customer indicates 5+ directors, trigger proactive outreach: <em>"We noticed you have a larger ownership structure — here's the fastest way through this."</em> A templated collection process turns a 30-minute friction point into a guided 10-minute task.</p>
+      </div>
+      <div class="fp-block">
+        <div class="fp-label fix">Product fix</div>
+        <p>Bulk upload or CSV import for director and owner information. A progress-save feature so multi-director onboarding can span sessions without losing earlier work. Session persistence alone would recover a meaningful share of these stalls.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Common Thread -->
+  <div class="body-section">
+    <div class="sec-kicker">The Common Thread</div>
+    <div class="callout">
+      <div class="callout-head">The flow was built for a single decision-maker with immediate access to everything.</div>
+      <p>Most micro-SMBs fit that profile. But a meaningful segment doesn't — and right now, all three customer types fall off at the same cliff: the moment onboarding requires information or access that belongs to someone else in the organization. The fixes aren't expensive. A pre-onboarding checklist, a teammate handoff link, and bulk director upload would recover a significant portion of accounts currently stalling in the first two weeks. None of these require rebuilding the flow — they're additive layers on what already exists.</p>
+    </div>
+  </div>
+
+  <!-- Bets -->
+  <div class="body-section">
+    <div class="sec-kicker">Three Bets for the First 90 Days</div>
+
+    <div class="bet">
+      <div class="bet-num">01</div>
+      <div class="bet-body">
+        <div class="bet-title">Ship a "what you'll need" pre-onboarding checklist</div>
+        <p class="bet-text">Send every new signup a checklist of required information before they open the flow: bank credentials, signer date of birth, director list. Reduces surprise drop-off at all three friction points. Zero product work — this is an email and a help document.</p>
+        <div class="bet-measure">
+          <span class="m-label">Measure</span>
+          Drop-off rate at bank connection, signer verification, and director upload steps before and after.
+        </div>
+      </div>
+    </div>
+
+    <hr class="bet-divider">
+
+    <div class="bet">
+      <div class="bet-num">02</div>
+      <div class="bet-body">
+        <div class="bet-title">Re-engage all accounts stalled at connection or verification</div>
+        <p class="bet-text">Identify every account that started onboarding and stalled at bank connection or signer verification. These are warm accounts with real intent — they just needed a bridge. Reach out directly with a handoff option and a clear next step. This is recoverable revenue sitting in the queue.</p>
+        <div class="bet-measure">
+          <span class="m-label">Measure</span>
+          Activation rate of re-engaged stalled accounts versus self-service baseline.
+        </div>
+      </div>
+    </div>
+
+    <hr class="bet-divider">
+
+    <div class="bet">
+      <div class="bet-num">03</div>
+      <div class="bet-body">
+        <div class="bet-title">Route high-director-count signups to a dedicated activation path</div>
+        <p class="bet-text">Flag any account with 5+ directors at signup and route them to a higher-touch track: proactive outreach, a templated information collection process, and a dedicated call if needed. Prevents the friction that kills these accounts before they ever reach activation.</p>
+        <div class="bet-measure">
+          <span class="m-label">Measure</span>
+          60-day activation rate for high-director accounts on the dedicated path versus self-service control group.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="article-footer">
+    <div>
+      <div class="af-name">Max Hum</div>
+      <div class="af-role">Scaled Customer Activation Manager candidate</div>
+    </div>
+    <div class="af-links">
+      <a href="mailto:maxhum@outlook.com">maxhum@outlook.com</a>
+      <a href="https://linkedin.com/in/maxhum" target="_blank">LinkedIn</a>
+      <a href="https://maximillianhum.com" target="_blank">maximillianhum.com</a>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>
