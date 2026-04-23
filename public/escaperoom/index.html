@@ -1,0 +1,1185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>STATION ZERO</title>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+body{overflow:hidden;background:#000;font-family:'Courier New',monospace}
+canvas{display:block;position:fixed;inset:0}
+
+/* ── START SCREEN ── */
+#start{
+  position:fixed;inset:0;z-index:900;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:radial-gradient(ellipse at 50% 40%,#001428 0%,#000408 100%);
+  color:#64c8ff;transition:opacity .8s;
+}
+#start.gone{opacity:0;pointer-events:none}
+#start h1{font-size:clamp(2rem,6vw,4rem);letter-spacing:.4em;margin-bottom:.3em;text-shadow:0 0 40px #64c8ff88}
+#start .sub{font-size:.75rem;letter-spacing:.2em;color:#64c8ff66;margin-bottom:3em}
+#start .btn{
+  padding:12px 44px;border:1px solid #64c8ff66;background:#001830aa;
+  color:#64c8ff;font-family:inherit;font-size:.85rem;letter-spacing:.25em;
+  cursor:pointer;text-transform:uppercase;transition:all .2s;
+}
+#start .btn:hover{background:#003366aa;border-color:#64c8ff;box-shadow:0 0 24px #64c8ff44}
+#start .keys{margin-top:2.5em;font-size:.65rem;letter-spacing:.18em;color:#64c8ff44;line-height:2}
+
+/* ── GAME UI ── */
+#ui{position:fixed;inset:0;pointer-events:none;z-index:10;display:none}
+#ui.on{display:block}
+
+/* crosshair */
+#ch{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  width:18px;height:18px;opacity:.75;
+}
+#ch::before,#ch::after{content:'';position:absolute;background:#64c8ff;border-radius:1px}
+#ch::before{width:2px;height:18px;left:8px;top:0}
+#ch::after{width:18px;height:2px;left:0;top:8px}
+
+/* interact prompt */
+#prompt{
+  position:absolute;bottom:130px;left:50%;transform:translateX(-50%);
+  font-size:11px;letter-spacing:.18em;color:#64c8ffcc;text-transform:uppercase;
+  opacity:0;transition:opacity .15s;white-space:nowrap;
+  text-shadow:0 0 12px #64c8ff66;
+}
+#prompt.on{opacity:1}
+#prompt kbd{
+  background:#64c8ff22;border:1px solid #64c8ff44;
+  padding:1px 7px;border-radius:3px;font-family:inherit;font-size:inherit;
+}
+
+/* inventory */
+#inv{
+  position:absolute;bottom:20px;left:50%;transform:translateX(-50%);
+  display:flex;gap:8px;
+}
+.slot{
+  width:58px;height:58px;border:1px solid #64c8ff33;
+  background:#00060ecc;border-radius:5px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  font-size:8px;letter-spacing:.05em;color:#64c8ff44;text-align:center;
+  transition:all .2s;
+}
+.slot.has{border-color:#64c8ffaa;color:#64c8ff;background:#001830cc;box-shadow:0 0 10px #64c8ff22}
+.slot .icon{font-size:22px;margin-bottom:2px}
+
+/* objectives */
+#obj{
+  position:absolute;top:18px;left:18px;
+  font-size:10px;letter-spacing:.1em;color:#64c8ff66;line-height:2.2;
+}
+.ob{transition:all .3s}
+.ob.done{text-decoration:line-through;color:#64c8ff22}
+.ob::before{content:'▸ '}
+.ob.done::before{content:'✓ '}
+
+/* room label */
+#rlabel{
+  position:absolute;top:18px;right:18px;
+  font-size:10px;letter-spacing:.2em;color:#64c8ff44;text-transform:uppercase;
+}
+
+/* hint button */
+#hint-btn{
+  position:absolute;bottom:90px;right:18px;pointer-events:all;
+  padding:8px 16px;border:1px solid #ffa03266;
+  background:#1a0800cc;color:#ffa032cc;
+  font-family:inherit;font-size:10px;letter-spacing:.18em;
+  cursor:pointer;text-transform:uppercase;transition:all .2s;
+}
+#hint-btn:hover{background:#331500cc;border-color:#ffa032;color:#ffa032}
+
+/* click to lock */
+#clicklock{
+  position:absolute;bottom:160px;left:50%;transform:translateX(-50%);
+  font-size:11px;letter-spacing:.18em;color:#ffa03299;text-transform:uppercase;
+  pointer-events:none;transition:opacity .4s;text-align:center;
+}
+#clicklock.hide{opacity:0}
+
+/* vignette */
+#vig{
+  position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(ellipse at 50% 50%,transparent 55%,#00020888 100%);
+}
+
+/* scanlines */
+#scan{
+  position:absolute;inset:0;pointer-events:none;opacity:.04;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,#fff 2px,#fff 3px);
+}
+
+/* ── MODAL ── */
+#modal{
+  position:fixed;inset:0;z-index:200;
+  background:#00010bcc;backdrop-filter:blur(6px);
+  display:none;align-items:center;justify-content:center;
+}
+#modal.on{display:flex}
+.mbox{
+  background:#020d1aee;border:1px solid #64c8ff44;border-radius:8px;
+  padding:32px 36px;max-width:520px;width:93%;color:#a0d8f0;
+  box-shadow:0 0 60px #0033aa33,inset 0 0 40px #001a4411;
+  position:relative;max-height:90vh;overflow-y:auto;
+}
+.mbox h2{font-size:.9rem;letter-spacing:.28em;color:#64c8ff;margin-bottom:18px;text-transform:uppercase}
+.mbox p{font-size:.78rem;line-height:1.75;color:#a0d8f0cc;margin-bottom:14px;letter-spacing:.04em}
+.mclose{
+  position:absolute;top:12px;right:16px;background:none;border:none;
+  color:#64c8ff66;font-family:inherit;font-size:.78rem;cursor:pointer;letter-spacing:.1em;
+  transition:color .2s;pointer-events:all;
+}
+.mclose:hover{color:#64c8ff}
+.warn{color:#ff7040cc !important}
+.ok{color:#64ff96 !important}
+
+/* cipher */
+.cgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:14px 0}
+.ccell{text-align:center;padding:6px 0;border:1px solid #64c8ff22;border-radius:4px}
+.csym{font-size:1.5rem;display:block;color:#64c8ff;line-height:1.2}
+.cnum{font-size:.7rem;color:#64c8ff88}
+.encmsg{
+  background:#001428aa;border:1px solid #64c8ff33;
+  padding:14px;border-radius:4px;margin:12px 0;
+  font-size:2rem;letter-spacing:.4em;text-align:center;color:#64c8ff;
+}
+
+/* keypad */
+.kpdisplay{
+  background:#001428cc;border:1px solid #64c8ff44;
+  padding:14px 20px;border-radius:4px;margin-bottom:14px;
+  font-size:2rem;letter-spacing:.6em;text-align:center;color:#64c8ff;
+  min-height:66px;display:flex;align-items:center;justify-content:center;
+}
+.kpgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-width:240px;margin:0 auto}
+.kbtn{
+  padding:15px;border:1px solid #64c8ff33;background:#00121ecc;
+  color:#64c8ff;font-family:inherit;font-size:1rem;cursor:pointer;
+  border-radius:4px;transition:all .15s;letter-spacing:.1em;pointer-events:all;
+}
+.kbtn:hover{background:#003366cc;border-color:#64c8ff88}
+.kbtn.clr{color:#ff6464cc;border-color:#ff646444}
+.kbtn.ent{color:#64ff96cc;border-color:#64ff9644}
+.kres{text-align:center;margin-top:12px;font-size:.78rem;letter-spacing:.1em;height:22px}
+
+/* switches */
+.swrap{display:flex;gap:24px;justify-content:center;margin:16px 0}
+.switem{display:flex;flex-direction:column;align-items:center;gap:8px}
+.swlbl{font-size:.68rem;letter-spacing:.1em;color:#64c8ff88}
+.swui{
+  width:42px;height:78px;background:#001020cc;border:1px solid #64c8ff33;
+  border-radius:5px;cursor:pointer;position:relative;transition:all .2s;
+  pointer-events:all;
+}
+.swui.on{border-color:#64ff9688;background:#001a0acc}
+.swui::after{
+  content:'';width:30px;height:30px;
+  background:#64c8ff33;border:1px solid #64c8ff66;
+  border-radius:3px;position:absolute;left:5px;
+  transition:top .25s cubic-bezier(.4,0,.2,1),background .2s,border-color .2s;
+  top:38px;
+}
+.swui.on::after{top:8px;background:#64ff9666;border-color:#64ff9699;box-shadow:0 0 10px #64ff9644}
+.swstate{font-size:.65rem;letter-spacing:.1em}
+
+/* terminal content */
+.termrow{
+  display:flex;gap:24px;background:#001428aa;border:1px solid #64c8ff22;
+  padding:12px 16px;border-radius:4px;margin:10px 0;font-size:.8rem;
+}
+.termrow span{white-space:nowrap}
+
+/* ── WIN SCREEN ── */
+#win{
+  position:fixed;inset:0;z-index:800;
+  background:#00010bcc;display:none;
+  align-items:center;justify-content:center;flex-direction:column;
+  color:#64c8ff;text-align:center;
+}
+#win.on{display:flex;animation:fadeIn 1.5s ease}
+#win h1{font-size:clamp(2rem,6vw,4rem);letter-spacing:.5em;text-shadow:0 0 50px #64c8ff;margin-bottom:12px}
+#win p{font-size:.78rem;letter-spacing:.18em;color:#64c8ff88}
+#win .sub2{margin-top:30px;font-size:.68rem;color:#64c8ff44}
+
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+</style>
+</head>
+<body>
+
+<!-- START SCREEN -->
+<div id="start">
+  <h1>STATION ZERO</h1>
+  <p class="sub">Emergency Protocol Σ-7 — Escape Pod Activation Required</p>
+  <button class="btn" id="startBtn">INITIATE SEQUENCE</button>
+  <div class="keys">
+    WASD / ARROW KEYS — MOVE &nbsp;·&nbsp; CLICK &amp; DRAG — LOOK &nbsp;·&nbsp; E — INTERACT
+  </div>
+</div>
+
+<!-- GAME UI -->
+<div id="ui">
+  <div id="ch"></div>
+  <div id="prompt"></div>
+  <div id="rlabel" id="rl">SECTOR 01 — RESEARCH LAB</div>
+  <div id="obj">
+    <div class="ob" id="ob1">Locate the access cipher</div>
+    <div class="ob" id="ob2">Unlock the sector door</div>
+    <div class="ob" id="ob3">Retrieve the security keycard</div>
+    <div class="ob" id="ob4">Restore bridge power switches</div>
+    <div class="ob" id="ob5">Activate escape pod</div>
+  </div>
+  <div id="inv">
+    <div class="slot" id="s0"><span class="icon">·</span><span>EMPTY</span></div>
+    <div class="slot" id="s1"><span class="icon">·</span><span>EMPTY</span></div>
+    <div class="slot" id="s2"><span class="icon">·</span><span>EMPTY</span></div>
+  </div>
+  <button id="hint-btn" onclick="showHint()">[ HINT ]</button>
+  <div id="clicklock">CLICK &amp; DRAG TO LOOK AROUND</div>
+  <div id="vig"></div>
+  <div id="scan"></div>
+</div>
+
+<!-- MODAL -->
+<div id="modal">
+  <div class="mbox">
+    <button class="mclose" onclick="closeModal()">[ CLOSE ]</button>
+    <div id="minner"></div>
+  </div>
+</div>
+
+<!-- WIN -->
+<div id="win">
+  <h1>ESCAPED</h1>
+  <p>Emergency pod launched. You are alive.</p>
+  <p class="sub2">Station Zero destroyed in 4 minutes 12 seconds.</p>
+</div>
+
+<canvas id="c"></canvas>
+
+<script src="https://unpkg.com/three@0.134.0/build/three.min.js"></script>
+<script>
+// ═══════════════════════════════════════════════════
+//  STATION ZERO — Three.js Escape Room
+// ═══════════════════════════════════════════════════
+
+const SWITCH_SOL = [true, false, true, true]; // UP DOWN UP UP
+const DOOR_CODE  = '7382';
+
+// ── State ──────────────────────────────────────────
+const S = {
+  doorOpen: false,
+  keycardFound: false,
+  switchesSolved: false,
+  cipherRead: false,
+  escaped: false,
+  inventory: [],
+  switches: [false, false, false, false],
+  modalOpen: false,
+  hovered: null,
+  kpInput: '',
+};
+
+// ── Three.js globals ───────────────────────────────
+let scene, camera, renderer, clock;
+let yaw = 0, pitch = 0;
+let locked = false;
+let dragging = false, lastMX = 0, lastMY = 0;
+let mF=false,mB=false,mL=false,mR=false;
+const interactables = [];
+let doorMesh = null;
+const switchLevers = [];
+let launchBtnMesh = null;
+let ventGrate = null;
+let elTime = 0, flickT = 0;
+let emergencyLight;
+
+// ── Init ───────────────────────────────────────────
+function init() {
+  scene = new THREE.Scene();
+  scene.fog = new THREE.FogExp2(0x000810, 0.038);
+  scene.background = new THREE.Color(0x000810);
+
+  camera = new THREE.PerspectiveCamera(72, innerWidth/innerHeight, 0.05, 80);
+  camera.position.set(-8, 1.7, 0);
+
+  renderer = new THREE.WebGLRenderer({canvas: document.getElementById('c'), antialias: true});
+  renderer.setSize(innerWidth, innerHeight);
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.8;
+
+  clock = new THREE.Clock();
+
+  buildScene();
+  setupControls();
+
+  window.addEventListener('resize', () => {
+    camera.aspect = innerWidth/innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(innerWidth, innerHeight);
+  });
+  loop();
+}
+
+// ── Textures ───────────────────────────────────────
+function makeFloorTex() {
+  const sz = 512;
+  const cv = document.createElement('canvas');
+  cv.width = cv.height = sz;
+  const ctx = cv.getContext('2d');
+  ctx.fillStyle = '#06101a';
+  ctx.fillRect(0,0,sz,sz);
+  ctx.strokeStyle = '#0d2030';
+  ctx.lineWidth = 1;
+  const step = sz/8;
+  for(let i=0;i<=sz;i+=step){
+    ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i,sz); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0,i); ctx.lineTo(sz,i); ctx.stroke();
+  }
+  // Diagonal accent
+  ctx.strokeStyle = '#0a1c2a';
+  ctx.lineWidth = 0.5;
+  for(let i=-sz;i<sz*2;i+=step*2){
+    ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i+sz,sz); ctx.stroke();
+  }
+  const t = new THREE.CanvasTexture(cv);
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  t.repeat.set(6,6);
+  return t;
+}
+
+function makeWallTex() {
+  const sz = 256;
+  const cv = document.createElement('canvas');
+  cv.width = cv.height = sz;
+  const ctx = cv.getContext('2d');
+  ctx.fillStyle = '#080f19';
+  ctx.fillRect(0,0,sz,sz);
+  ctx.strokeStyle = '#0e1d2a';
+  ctx.lineWidth = 1;
+  for(let i=0;i<=sz;i+=32){
+    ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i,sz); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0,i); ctx.lineTo(sz,i); ctx.stroke();
+  }
+  const t = new THREE.CanvasTexture(cv);
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  t.repeat.set(3,2);
+  return t;
+}
+
+function makeSwitchDiagram() {
+  const cv = document.createElement('canvas');
+  cv.width = 256; cv.height = 80;
+  const ctx = cv.getContext('2d');
+  ctx.fillStyle = '#010d1a';
+  ctx.fillRect(0,0,256,80);
+  const labels = ['SW-1','SW-2','SW-3','SW-4'];
+  const colors = ['#44ff88','#ff5544','#44ff88','#44ff88'];
+  SWITCH_SOL.forEach((up,i) => {
+    const x = 12 + i*60;
+    ctx.strokeStyle = colors[i];
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(x, 8, 44, 56);
+    ctx.fillStyle = colors[i];
+    ctx.font = '9px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText(labels[i], x+22, 76);
+    // Arrow
+    ctx.beginPath();
+    if(up) {
+      ctx.moveTo(x+22, 14); ctx.lineTo(x+12, 36); ctx.lineTo(x+32, 36);
+    } else {
+      ctx.moveTo(x+22, 58); ctx.lineTo(x+12, 36); ctx.lineTo(x+32, 36);
+    }
+    ctx.fill();
+  });
+  return new THREE.CanvasTexture(cv);
+}
+
+// ── Materials ──────────────────────────────────────
+const floorTex = makeFloorTex();
+const wallTex  = makeWallTex();
+
+const MAT = {
+  floor:   new THREE.MeshStandardMaterial({map: floorTex, roughness:.9, metalness:.3}),
+  wall:    new THREE.MeshStandardMaterial({map: wallTex, roughness:.85, metalness:.5,
+             emissive:new THREE.Color(0x010408), emissiveIntensity:.4}),
+  ceil:    new THREE.MeshStandardMaterial({color:0x07101a, roughness:.9, metalness:.3,
+             emissive:new THREE.Color(0x010408), emissiveIntensity:.3}),
+  metal:   new THREE.MeshStandardMaterial({color:0x18253a, roughness:.3, metalness:.9}),
+  screen:  new THREE.MeshStandardMaterial({color:0x001020, emissive:new THREE.Color(0x002244), emissiveIntensity:2}),
+  screenG: new THREE.MeshStandardMaterial({color:0x001020, emissive:new THREE.Color(0x003322), emissiveIntensity:1.5}),
+  glow:    new THREE.MeshStandardMaterial({color:0x001840, emissive:new THREE.Color(0x0055cc), emissiveIntensity:1.5, roughness:.2, metalness:.7}),
+  door:    new THREE.MeshStandardMaterial({color:0x0a1828, roughness:.2, metalness:.95,
+             emissive:new THREE.Color(0x001840), emissiveIntensity:.6}),
+  strip:   new THREE.MeshStandardMaterial({color:0x001133, emissive:new THREE.Color(0x0044aa), emissiveIntensity:1.2}),
+  orange:  new THREE.MeshStandardMaterial({color:0x1a0500, emissive:new THREE.Color(0xcc2200), emissiveIntensity:1.5}),
+  pod:     new THREE.MeshStandardMaterial({color:0x001a10, emissive:new THREE.Color(0x003322), emissiveIntensity:1.2}),
+  launch:  new THREE.MeshStandardMaterial({color:0x1a0000, emissive:new THREE.Color(0xaa0000), emissiveIntensity:1.0}),
+  diag:    null, // set after texture
+  invisible: new THREE.MeshBasicMaterial({visible:false}),
+};
+
+// ── Helpers ────────────────────────────────────────
+function mk(geo, mat, rx, ry, rz) {
+  const m = new THREE.Mesh(geo, mat);
+  m.castShadow = m.receiveShadow = true;
+  if(rx) m.rotation.x = rx;
+  if(ry) m.rotation.y = ry;
+  if(rz) m.rotation.z = rz;
+  scene.add(m);
+  return m;
+}
+
+function box(w,h,d, mat, x,y,z, rx,ry,rz) {
+  const m = mk(new THREE.BoxGeometry(w,h,d), mat);
+  m.position.set(x,y,z);
+  if(rx) m.rotation.x=rx;
+  if(ry) m.rotation.y=ry;
+  if(rz) m.rotation.z=rz;
+  return m;
+}
+
+function cyl(rt,rb,h,seg, mat, x,y,z, ry) {
+  const m = mk(new THREE.CylinderGeometry(rt,rb,h,seg), mat);
+  m.position.set(x,y,z);
+  if(ry) m.rotation.y=ry;
+  return m;
+}
+
+function reg(mesh, id, label, prompt, cb) {
+  mesh.userData = {iact:true, id, label, prompt, cb};
+  interactables.push(mesh);
+}
+
+// ── Scene ──────────────────────────────────────────
+function buildScene() {
+  buildRoom1();
+  buildRoom2();
+  buildSharedWall();
+  addLights();
+  addRoom1Objects();
+  addRoom2Objects();
+}
+
+// Room dims:  Room1: x[-13,0]  Room2: x[0,13]  both z[-7,7] y[0,5]
+function buildRoom1() {
+  const ft = floorTex.clone(); ft.repeat.set(6,7); ft.needsUpdate=true;
+  const fm = new THREE.MeshStandardMaterial({map:ft, roughness:.9, metalness:.2});
+
+  box(13,.15,14, fm,        -6.5,-.075,0);               // floor
+  box(13,.15,14, MAT.ceil,  -6.5, 5.075,0);              // ceiling
+  box(.15,5,14,  MAT.wall,  -13, 2.5,0);                 // west wall
+  box(13,5,.15,  MAT.wall,  -6.5,2.5,-7);                // north wall
+  box(13,5,.15,  MAT.wall,  -6.5,2.5, 7);                // south wall
+
+  // Ceiling light strips
+  box(10,.06,.25, MAT.strip, -6.5,4.97, 2.5);
+  box(10,.06,.25, MAT.strip, -6.5,4.97,-2.5);
+
+  // Wall accent strips (vertical, east edge)
+  box(.06,5,.06, MAT.strip, -13,2.5,-7);
+  box(.06,5,.06, MAT.strip, -13,2.5, 7);
+}
+
+function buildRoom2() {
+  const ft2 = floorTex.clone(); ft2.repeat.set(6,7); ft2.needsUpdate=true;
+  const fm2 = new THREE.MeshStandardMaterial({map:ft2, roughness:.9, metalness:.2,
+    emissive:new THREE.Color(0x001005), emissiveIntensity:.3});
+
+  box(13,.15,14, fm2,       6.5,-.075,0);                // floor
+  box(13,.15,14, MAT.ceil,  6.5, 5.075,0);               // ceiling
+  box(.15,5,14,  MAT.wall,  13,  2.5,0);                 // east wall
+  box(13,5,.15,  MAT.wall,  6.5, 2.5,-7);                // north wall
+  box(13,5,.15,  MAT.wall,  6.5, 2.5, 7);                // south wall
+
+  // Ceiling strips (slightly greenish)
+  const sg = new THREE.MeshStandardMaterial({color:0x001122, emissive:new THREE.Color(0x003344), emissiveIntensity:1.0});
+  box(10,.06,.25, sg, 6.5,4.97, 2.5);
+  box(10,.06,.25, sg, 6.5,4.97,-2.5);
+
+  // Warning stripe on floor
+  const ws = new THREE.MeshStandardMaterial({color:0x1a0800, emissive:new THREE.Color(0x331400), emissiveIntensity:.7});
+  box(12,.01,.25, ws, 6.5,.01,0);
+}
+
+function buildSharedWall() {
+  // Wall at x=0, with door opening at z[-1.8,1.8], y[0,3.6]
+  const dz = 1.8, dh = 3.6;
+  const H = 5, D = 14;
+  // Left panel  z[-7, -dz]
+  box(.2, H, D/2-dz, MAT.wall,  0, 2.5, -(D/4+dz/2));
+  // Right panel z[dz, 7]
+  box(.2, H, D/2-dz, MAT.wall,  0, 2.5,  D/4+dz/2);
+  // Top panel
+  box(.2, H-dh, dz*2, MAT.wall, 0, dh+(H-dh)/2, 0);
+
+  // Door frame glow
+  box(.15, dh+.1, .08, MAT.glow, 0, dh/2, -dz);
+  box(.15, dh+.1, .08, MAT.glow, 0, dh/2,  dz);
+  box(.15, .08, dz*2+.16, MAT.glow, 0, dh, 0);
+
+  // Door mesh (slides up when unlocked)
+  doorMesh = box(.25, dh, dz*2-.1, MAT.door, 0, dh/2, 0);
+  doorMesh.name = 'door';
+}
+
+// ── Lighting ───────────────────────────────────────
+function addLights() {
+  scene.add(new THREE.AmbientLight(0x0a1828, 12));
+
+  // Room 1 — blue overhead (brighter, wider)
+  const l1 = new THREE.PointLight(0x2255ee, 3.5, 28);
+  l1.position.set(-6.5, 4.5, 0); l1.castShadow=true; scene.add(l1);
+
+  // Room 1 secondary fill
+  const l1b = new THREE.PointLight(0x1144cc, 2.0, 20);
+  l1b.position.set(-10, 3.5, 3); scene.add(l1b);
+
+  // Emergency flicker (red)
+  emergencyLight = new THREE.PointLight(0xff2200, 3.5, 14);
+  emergencyLight.position.set(-2, 4, -4); scene.add(emergencyLight);
+
+  // Room 1 south wall fill — illuminates vent area
+  const lvent = new THREE.PointLight(0x1155aa, 2.5, 10);
+  lvent.position.set(-5, 3, 5.5); scene.add(lvent);
+
+  // Room 1 north wall fill — illuminates cipher panel
+  const lcipher = new THREE.PointLight(0x1144cc, 3.0, 10);
+  lcipher.position.set(-7, 3, -5); scene.add(lcipher);
+
+  // Room 2 — brighter overhead
+  const l2 = new THREE.PointLight(0x0055aa, 3.0, 28);
+  l2.position.set(6.5, 4.5, 0); l2.castShadow=true; scene.add(l2);
+
+  // Room 2 north wall — illuminates switch panel
+  const lsw = new THREE.PointLight(0x3300aa, 3.5, 10);
+  lsw.position.set(7, 3.5, -5); scene.add(lsw);
+
+  // Escape pod glow
+  const lp = new THREE.PointLight(0x00ff88, 2.0, 12);
+  lp.position.set(11.5, 2.5, 0); scene.add(lp);
+
+  // Switch panel accent
+  const ls = new THREE.PointLight(0x6600cc, 1.5, 8);
+  ls.position.set(7, 3, -6); scene.add(ls);
+}
+
+// ── Room 1 Objects ─────────────────────────────────
+function addRoom1Objects() {
+  // Cipher panel (north wall)
+  const cp = box(2.2,1.5,.1, MAT.screen, -7,2.6,-6.92);
+  const cpFrame = box(2.4,1.7,.08, MAT.glow, -7,2.6,-6.97);
+  // Cipher text texture
+  const cv = document.createElement('canvas'); cv.width=256; cv.height=160;
+  const ctx = cv.getContext('2d');
+  ctx.fillStyle='#000c1a'; ctx.fillRect(0,0,256,160);
+  ctx.fillStyle='#00aaff'; ctx.font='bold 11px monospace'; ctx.textAlign='left';
+  ctx.fillText('CIPHER KEY — SECTOR 7', 10, 18);
+  ctx.fillStyle='#005599'; ctx.fillRect(0,22,256,1);
+  const syms = ['▲','◆','●','★','■','⬟','⬡','⬢','△','○'];
+  const nums = ['7','3','8','2','5','1','6','9','4','0'];
+  syms.forEach((s,i)=>{
+    const col = i%2===0 ? '#64c8ff' : '#4499cc';
+    ctx.fillStyle=col;
+    ctx.font='18px monospace';
+    ctx.fillText(s, 12+(i%5)*48, 55+Math.floor(i/5)*40);
+    ctx.font='11px monospace';
+    ctx.fillStyle='#336688';
+    ctx.fillText('='+nums[i], 30+(i%5)*48, 55+Math.floor(i/5)*40);
+  });
+  ctx.fillStyle='#336688'; ctx.fillRect(0,108,256,1);
+  ctx.fillStyle='#44aaff'; ctx.font='bold 12px monospace'; ctx.textAlign='center';
+  ctx.fillText('ACCESS CODE:', 128, 126);
+  ctx.font='bold 32px monospace';
+  ctx.fillStyle='#88ddff';
+  ctx.fillText('▲  ◆  ●  ★', 128, 155);
+  const screenTex = new THREE.CanvasTexture(cv);
+  const cpScreen = box(2.0,1.3,.09, new THREE.MeshStandardMaterial({
+    map:screenTex, emissive:new THREE.Color(0x001a33), emissiveIntensity:.8
+  }), -7, 2.6, -6.9);
+  reg(cpScreen, 'cipher', 'CIPHER DECRYPTION UNIT', '[E] Read cipher', showCipher);
+  reg(cp, 'cipher', 'CIPHER DECRYPTION UNIT', '[E] Read cipher', showCipher);
+
+  // Keypad (on shared wall, room1 side) — visible panel
+  // Base plate
+  const kBase = box(.09,.72,.52, MAT.metal, -.045, 1.5, 3.2);
+  // Bezel
+  box(.07,.68,.48, new THREE.MeshStandardMaterial({color:0x0d1f33, metalness:.8, roughness:.3}), -.04, 1.5, 3.2);
+  // Screen
+  const kpScr = box(.06,.16,.3, MAT.screen, -.025, 1.76, 3.2);
+  // Button grid (3x4 buttons)
+  const btnM = new THREE.MeshStandardMaterial({color:0x1a3a5a, metalness:.7, roughness:.3, emissive:new THREE.Color(0x0a1a2a), emissiveIntensity:.5});
+  for(let r=0;r<4;r++) for(let c=0;c<3;c++){
+    box(.05,.07,.09, btnM, -.02, 1.62-r*.1, 3.05+c*.13);
+  }
+  // Glow frame around keypad
+  box(.11,.76,.56, new THREE.MeshStandardMaterial({color:0x001840, emissive:new THREE.Color(0x0055cc), emissiveIntensity:1.2, metalness:.9}), -.065, 1.5, 3.2);
+  // Point light
+  const kLight = new THREE.PointLight(0x2266ff, 1.5, 2.5);
+  kLight.position.set(-.5, 1.5, 3.2); scene.add(kLight);
+  // Hit box
+  const kHit = box(.15,.8,.6, MAT.invisible, -.07, 1.5, 3.2);
+  reg(kHit, 'keypad', 'ACCESS KEYPAD', '[E] Enter code', showKeypad);
+  reg(kBase, 'keypad', 'ACCESS KEYPAD', '[E] Enter code', showKeypad);
+
+  // Vent (south wall)
+  const vg = box(.9,.65,.12, MAT.metal, -5,1.4,6.9);
+  vg.name='ventGrate';
+  ventGrate = vg;
+  // Slats
+  for(let i=-2;i<=2;i++){
+    box(.78,.05,.14, new THREE.MeshStandardMaterial({color:0x1a2a3a, metalness:.9, roughness:.3}),
+        -5, 1.4+i*.11, 6.92);
+  }
+  reg(vg, 'vent', 'VENTILATION PANEL', '[E] Inspect vent', doVent);
+
+  // Desk + terminal
+  box(2.8,.1,.95, MAT.metal, -10,1.02,4.5);
+  // Legs
+  [[-1.2,-1.2],[1.2,-1.2],[-1.2,1.2],[1.2,1.2]].forEach(([dx,dz])=>{
+    box(.07,1,.07, MAT.metal, -10+dx, .51, 4.5+dz*.35);
+  });
+  // Monitor
+  box(1.4,.9,.07, MAT.metal, -10,1.62,4.22);
+  const termScreen = box(1.2,.72,.06, new THREE.MeshStandardMaterial({
+    color:0x00050e, emissive:new THREE.Color(0x001840), emissiveIntensity:1.8,
+  }), -10, 1.62, 4.18);
+  // Terminal text
+  const tcv = document.createElement('canvas'); tcv.width=256; tcv.height=160;
+  const tctx = tcv.getContext('2d');
+  tctx.fillStyle='#000c1a'; tctx.fillRect(0,0,256,160);
+  tctx.fillStyle='#ff5533'; tctx.font='10px monospace';
+  tctx.fillText('⚠ EMERGENCY — LIFE SUPPORT: 12%', 6, 16);
+  tctx.fillStyle='#336688'; tctx.fillRect(0,20,256,1);
+  tctx.fillStyle='#44ccff'; tctx.font='bold 10px monospace';
+  tctx.fillText('BRIDGE POWER CONFIG:', 6, 36);
+  const swlabels=['SW-1','SW-2','SW-3','SW-4'];
+  const swcols=['#44ff88','#ff5544','#44ff88','#44ff88'];
+  const swvals=['▲ UP','▼ DOWN','▲ UP','▲ UP'];
+  swlabels.forEach((l,i)=>{
+    tctx.fillStyle=swcols[i]; tctx.font='11px monospace';
+    tctx.fillText(l+': '+swvals[i], 8, 58+i*20);
+  });
+  tctx.fillStyle='#224455'; tctx.fillRect(0,140,256,1);
+  tctx.fillStyle='#ff9933'; tctx.font='10px monospace';
+  tctx.fillText('→ Configure in Sector 08', 6, 155);
+  termScreen.material = new THREE.MeshStandardMaterial({
+    map: new THREE.CanvasTexture(tcv),
+    emissive:new THREE.Color(0x001028), emissiveIntensity:.9
+  });
+  reg(termScreen, 'terminal', 'COMMAND TERMINAL', '[E] Access terminal', showTerminal);
+
+  // Stool
+  cyl(.28,.28,.06,10, MAT.metal, -10,.75,5.2);
+  cyl(.04,.04,.75,6,  MAT.metal, -10,.38,5.2);
+
+  // Decorative pipes on west wall
+  box(.1,.1,14, new THREE.MeshStandardMaterial({color:0x0d1a28, metalness:.9, roughness:.2}), -12.9, 3.5, 0);
+  box(.1,.1,14, new THREE.MeshStandardMaterial({color:0x0a1520, metalness:.9, roughness:.2}), -12.9, 1.5, 0);
+}
+
+// ── Room 2 Objects ─────────────────────────────────
+function addRoom2Objects() {
+  // Switch panel board
+  box(3.2,2,.12, MAT.metal, 7,2.3,-6.92);
+  const spFrame = box(3.4,2.2,.1, new THREE.MeshStandardMaterial({
+    color:0x0a0020, emissive:new THREE.Color(0x220044), emissiveIntensity:.8, metalness:.9
+  }), 7, 2.3, -6.97);
+
+  // Pattern diagram board (above switches)
+  MAT.diag = new THREE.MeshStandardMaterial({
+    map: makeSwitchDiagram(),
+    emissive: new THREE.Color(0x001428), emissiveIntensity:.9
+  });
+  box(2.2,.7,.1, MAT.diag, 7, 3.8, -6.9);
+  box(2.4,.9,.08, new THREE.MeshStandardMaterial({color:0x050014, emissive:new THREE.Color(0x001030), emissiveIntensity:.5, metalness:.9}),
+      7, 3.8, -6.95);
+
+  // 4 switches
+  for(let i=0;i<4;i++){
+    const sx = 5.5 + i*0.7;
+    box(.22,.52,.16, MAT.metal, sx, 2.2, -6.84);
+    const lever = box(.1,.3,.12, new THREE.MeshStandardMaterial({
+      color:0x334466, metalness:.9, roughness:.2
+    }), sx, 2.05, -6.8);
+    lever.name = 'sw'+i;
+    switchLevers.push(lever);
+  }
+
+  // Switch hitbox
+  const swHit = box(3,2,.3, MAT.invisible, 7, 2.3, -6.88);
+  reg(swHit, 'switches', 'POWER DISTRIBUTION PANEL', '[E] Configure switches', showSwitches);
+
+  // Status LEDs on switch panel
+  for(let i=0;i<4;i++){
+    const led = box(.1,.1,.12, MAT.orange, 5.5+i*.7, 1.6, -6.84);
+    led.name='led'+i;
+  }
+
+  // Escape pod console (east wall)
+  box(.15,1.5,2.2, MAT.metal, 12.92, 2, 0);
+  const podScr = box(.1,.9,1.6, MAT.pod, 12.88, 2.2, 0);
+  // Pod screen texture
+  const pcv = document.createElement('canvas'); pcv.width=160; pcv.height=128;
+  const pctx = pcv.getContext('2d');
+  pctx.fillStyle='#000e08'; pctx.fillRect(0,0,160,128);
+  pctx.fillStyle='#00ff88'; pctx.font='bold 9px monospace';
+  pctx.fillText('ESCAPE POD CONSOLE', 8,14);
+  pctx.fillStyle='#004422'; pctx.fillRect(0,18,160,1);
+  pctx.fillStyle='#ff4400'; pctx.font='10px monospace';
+  pctx.fillText('POWER: OFFLINE', 8,34);
+  pctx.fillText('AUTH: REQUIRED', 8,50);
+  pctx.fillStyle='#225544'; pctx.fillRect(0,58,160,1);
+  pctx.fillStyle='#006633'; pctx.font='9px monospace';
+  pctx.fillText('→ Restore power switches', 8,72);
+  pctx.fillText('→ Insert Level-2 keycard', 8,86);
+  pctx.fillStyle='#223344'; pctx.font='8px monospace';
+  pctx.fillText('EMERGENCY LAUNCH READY', 8,108);
+  podScr.material = new THREE.MeshStandardMaterial({
+    map: new THREE.CanvasTexture(pcv),
+    emissive:new THREE.Color(0x001a0a), emissiveIntensity:1.0
+  });
+  reg(podScr, 'pod', 'ESCAPE POD CONSOLE', '[E] Activate pod', doPod);
+
+  // Launch button
+  launchBtnMesh = cyl(.12,.12,.1,12, MAT.launch, 12.87, 1.6, -.4);
+  launchBtnMesh.rotation.z = Math.PI/2;
+  launchBtnMesh.name = 'launchBtn';
+
+  // Storage lockers (south wall)
+  for(let i=0;i<3;i++){
+    box(.85,2,.4, MAT.metal, 3+i,1,6.6);
+    box(.04,.2,.04, MAT.metal, 3+i+.3,1,6.42);
+  }
+
+  // Decorative pipes
+  box(.1,.1,14, new THREE.MeshStandardMaterial({color:0x0d1a28, metalness:.9}), 12.9, 3.5, 0);
+
+  // Warning stripes near pod
+  const ws2 = new THREE.MeshStandardMaterial({color:0x1a0800, emissive:new THREE.Color(0x440f00), emissiveIntensity:.6});
+  [-1,1].forEach(z=> box(.01,.25,.25, ws2, 12.86, 1.75, z*.6));
+}
+
+// ── Controls ───────────────────────────────────────
+function setupControls() {
+  document.addEventListener('keydown', e=>{
+    if(S.modalOpen && e.code!=='Escape') return;
+    if(e.code==='KeyW'||e.code==='ArrowUp')    mF=true;
+    if(e.code==='KeyS'||e.code==='ArrowDown')  mB=true;
+    if(e.code==='KeyA'||e.code==='ArrowLeft')  mL=true;
+    if(e.code==='KeyD'||e.code==='ArrowRight') mR=true;
+    if(e.code==='KeyE' && S.hovered && !S.modalOpen) S.hovered.userData.cb();
+    if(e.code==='Escape' && S.modalOpen) closeModal();
+  });
+  document.addEventListener('keyup', e=>{
+    if(e.code==='KeyW'||e.code==='ArrowUp')    mF=false;
+    if(e.code==='KeyS'||e.code==='ArrowDown')  mB=false;
+    if(e.code==='KeyA'||e.code==='ArrowLeft')  mL=false;
+    if(e.code==='KeyD'||e.code==='ArrowRight') mR=false;
+  });
+
+  // Drag-to-look (no pointer lock needed)
+  const cv = renderer.domElement;
+  cv.addEventListener('mousedown', e=>{
+    if(e.button===0 && !S.modalOpen){ dragging=true; lastMX=e.clientX; lastMY=e.clientY; }
+  });
+  document.addEventListener('mouseup',  ()=>{ dragging=false; });
+  document.addEventListener('mousemove', e=>{
+    if(!dragging || S.modalOpen) return;
+    const dx=e.clientX-lastMX, dy=e.clientY-lastMY;
+    lastMX=e.clientX; lastMY=e.clientY;
+    yaw   -= dx * .004;
+    pitch -= dy * .004;
+    pitch = Math.max(-1.1, Math.min(1.1, pitch));
+    camera.quaternion.setFromEuler(new THREE.Euler(pitch,yaw,0,'YXZ'));
+  });
+
+  // Touch support
+  let lastTX=0, lastTY=0;
+  cv.addEventListener('touchstart', e=>{ lastTX=e.touches[0].clientX; lastTY=e.touches[0].clientY; });
+  cv.addEventListener('touchmove',  e=>{
+    if(S.modalOpen) return;
+    const dx=e.touches[0].clientX-lastTX, dy=e.touches[0].clientY-lastTY;
+    lastTX=e.touches[0].clientX; lastTY=e.touches[0].clientY;
+    yaw   -= dx * .004;
+    pitch -= dy * .004;
+    pitch = Math.max(-1.1, Math.min(1.1, pitch));
+    camera.quaternion.setFromEuler(new THREE.Euler(pitch,yaw,0,'YXZ'));
+    e.preventDefault();
+  },{passive:false});
+}
+
+// ── Player movement ────────────────────────────────
+function movePlayer(dt) {
+  if(S.modalOpen) return;
+  const dir = new THREE.Vector3();
+  if(mF) dir.z -= 1;
+  if(mB) dir.z += 1;
+  if(mL) dir.x -= 1;
+  if(mR) dir.x += 1;
+  if(!dir.length()) return;
+  dir.normalize().applyEuler(new THREE.Euler(0,yaw,0));
+  const spd = 4.5;
+  const np = camera.position.clone().addScaledVector(dir, spd*dt);
+  np.y = 1.7;
+  if(ok(np)) camera.position.copy(np);
+  else {
+    const nx=new THREE.Vector3(np.x,1.7,camera.position.z);
+    if(ok(nx)) camera.position.copy(nx);
+    else {
+      const nz=new THREE.Vector3(camera.position.x,1.7,np.z);
+      if(ok(nz)) camera.position.copy(nz);
+    }
+  }
+}
+
+function ok(p) {
+  const r=.4, x=p.x, z=p.z;
+  if(z < -6.6+r || z > 6.6-r) return false;
+  if(x < -12.6+r || x > 12.6-r) return false;
+  // Shared wall at x=0 (thickness ~0.25)
+  if(Math.abs(x) < .13+r){
+    if(!S.doorOpen) return false;
+    if(Math.abs(z) > 1.75-r) return false;
+  }
+  return true;
+}
+
+// ── Raycasting / Hover ─────────────────────────────
+const rc = new THREE.Raycaster();
+const origEmissive = new Map();
+
+function updateHover() {
+  if(S.modalOpen) {
+    if(S.hovered) { dehighlight(S.hovered); S.hovered=null; }
+    document.getElementById('prompt').classList.remove('on');
+    return;
+  }
+  rc.setFromCamera({x:0,y:0}, camera);
+  const hits = rc.intersectObjects(interactables, false);
+  if(hits.length && hits[0].distance < 4.2) {
+    const o = hits[0].object;
+    if(o !== S.hovered) {
+      if(S.hovered) dehighlight(S.hovered);
+      S.hovered = o;
+      highlight(o);
+    }
+    const pr = document.getElementById('prompt');
+    pr.innerHTML = `<kbd>E</kbd> &nbsp;${o.userData.prompt}`;
+    pr.classList.add('on');
+  } else {
+    if(S.hovered) { dehighlight(S.hovered); S.hovered=null; }
+    document.getElementById('prompt').classList.remove('on');
+  }
+}
+
+function highlight(o) {
+  if(!o.material?.emissive) return;
+  if(!origEmissive.has(o.uuid)) origEmissive.set(o.uuid, {c:o.material.emissive.getHex(), i:o.material.emissiveIntensity||0});
+  o.material.emissive.set(0x2277ee);
+  o.material.emissiveIntensity = 1.8;
+}
+function dehighlight(o) {
+  if(!o.material?.emissive) return;
+  const e=origEmissive.get(o.uuid);
+  if(e){ o.material.emissive.set(e.c); o.material.emissiveIntensity=e.i; }
+}
+
+// ── Modal system ───────────────────────────────────
+function openModal(html) {
+  document.getElementById('minner').innerHTML = html;
+  document.getElementById('modal').classList.add('on');
+  S.modalOpen = true;
+  if(locked) document.exitPointerLock();
+}
+function closeModal() {
+  document.getElementById('modal').classList.remove('on');
+  S.modalOpen = false;
+}
+
+// ── Cipher ─────────────────────────────────────────
+function showCipher() {
+  S.cipherRead = true; checkObj();
+  openModal(`
+    <h2>◈ CIPHER DECRYPTION UNIT</h2>
+    <p>Emergency symbol cipher — decode the sector access code:</p>
+    <div class="cgrid">
+      ${['▲','◆','●','★','■','⬟','⬡','⬢','△','○'].map((s,i)=>`
+        <div class="ccell"><span class="csym">${s}</span><span class="cnum">= ${['7','3','8','2','5','1','6','9','4','0'][i]}</span></div>
+      `).join('')}
+    </div>
+    <p style="font-size:.72rem;color:#64c8ff88;margin-bottom:6px">SECTOR-7 DOOR ACCESS CODE:</p>
+    <div class="encmsg">▲ &nbsp;◆ &nbsp;● &nbsp;★</div>
+    <p style="font-size:.72rem;color:#a0d8f088">Apply the cipher key above to decode the 4 symbols. Enter the result at the keypad beside the sector door.</p>
+  `);
+}
+
+// ── Keypad ─────────────────────────────────────────
+function showKeypad() {
+  if(S.doorOpen){ openModal('<h2>▣ ACCESS KEYPAD</h2><p class="ok">✓ Sector door already unlocked.</p>'); return; }
+  S.kpInput = '';
+  openModal(`
+    <h2>▣ ACCESS KEYPAD — SECTOR DOOR</h2>
+    <p>Enter the 4-digit security code.</p>
+    <div class="kpdisplay" id="kpd">_ _ _ _</div>
+    <div class="kpgrid">
+      ${[1,2,3,4,5,6,7,8,9].map(n=>`<button class="kbtn" onclick="kp('${n}')">${n}</button>`).join('')}
+      <button class="kbtn clr" onclick="kp('C')">CLR</button>
+      <button class="kbtn" onclick="kp('0')">0</button>
+      <button class="kbtn ent" onclick="kp('E')">▶</button>
+    </div>
+    <div class="kres" id="kpr"></div>
+  `);
+}
+window.kp = function(k) {
+  if(k==='C'){ S.kpInput=''; }
+  else if(k==='E'){
+    if(S.kpInput===DOOR_CODE){
+      document.getElementById('kpr').innerHTML='<span class="ok">✓ ACCESS GRANTED — SECTOR DOOR UNLOCKED</span>';
+      setTimeout(()=>{ closeModal(); unlockDoor(); },900);
+    } else {
+      document.getElementById('kpr').innerHTML='<span style="color:#ff5555">✗ INVALID CODE — TRY AGAIN</span>';
+      S.kpInput='';
+      setTimeout(()=>{ const el=document.getElementById('kpr'); if(el)el.textContent=''; refreshKp(); },1200);
+    }
+    return;
+  } else {
+    if(S.kpInput.length<4) S.kpInput+=k;
+  }
+  refreshKp();
+};
+function refreshKp(){
+  const d=document.getElementById('kpd');
+  if(d) d.textContent = (S.kpInput.split('').join(' ')+' _ _ _ _').split(' ').slice(0,7).join(' ');
+}
+
+function unlockDoor(){
+  S.doorOpen=true;
+  checkObj();
+  // Animate door sliding up
+  let t=0;
+  const sy=doorMesh.position.y;
+  function animDoor(){
+    t+=.025; t=Math.min(t,1);
+    const ease=t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
+    doorMesh.position.y = sy + ease*6;
+    doorMesh.material.emissive.set(0x00cc44);
+    if(t<1) requestAnimationFrame(animDoor);
+    else { doorMesh.visible=false; }
+  }
+  animDoor();
+  // Light up doorframe green briefly
+}
+
+// ── Vent ───────────────────────────────────────────
+function doVent(){
+  if(S.keycardFound){
+    openModal('<h2>◈ VENTILATION PANEL</h2><p>Empty. Keycard already retrieved.</p>');
+    return;
+  }
+  S.keycardFound=true;
+  // Animate grate falling
+  if(ventGrate){ ventGrate.rotation.x=.8; ventGrate.position.y-=.4; }
+  addToInventory('KEYCARD','🔑');
+  checkObj();
+  openModal(`
+    <h2>◈ VENTILATION PANEL</h2>
+    <p>The grate pops loose. You reach into the duct...</p>
+    <p style="text-align:center;font-size:1.2rem;margin:18px 0;color:#64c8ff;letter-spacing:.15em">KEYCARD RETRIEVED</p>
+    <p style="font-size:.72rem;color:#a0d8f088">Level-2 Security Keycard — required for escape pod authorization.</p>
+  `);
+}
+
+// ── Terminal ───────────────────────────────────────
+function showTerminal(){
+  openModal(`
+    <h2>⬡ COMMAND TERMINAL — SECTOR 7</h2>
+    <p class="warn">⚠ CRITICAL: Life support at 12%. Hull breach in Section 4.</p>
+    <p>Bridge power distribution requires manual reconfiguration:</p>
+    <div class="termrow">
+      <span style="color:#44ff88">SW-1: ▲ UP</span>
+      <span style="color:#ff5544">SW-2: ▼ DOWN</span>
+      <span style="color:#44ff88">SW-3: ▲ UP</span>
+      <span style="color:#44ff88">SW-4: ▲ UP</span>
+    </div>
+    <p style="font-size:.72rem;color:#a0d8f088">Locate the power distribution panel in Sector 08 (Bridge) and configure switches to match the pattern above. This will restore escape pod power.</p>
+  `);
+}
+
+// ── Switches ───────────────────────────────────────
+function showSwitches(){
+  openModal(switchHtml());
+}
+function switchHtml(){
+  return `
+    <h2>⚡ POWER DISTRIBUTION PANEL</h2>
+    <p>Match the switch configuration from the terminal readout to restore escape pod power.</p>
+    <div class="swrap">
+      ${S.switches.map((on,i)=>`
+        <div class="switem">
+          <div class="swlbl">SW-${i+1}</div>
+          <div class="swui ${on?'on':''}" onclick="swToggle(${i})"></div>
+          <div class="swstate" style="color:${on?'#64ff96':'#ff6464'}">${on?'▲ UP':'▼ DN'}</div>
+        </div>
+      `).join('')}
+    </div>
+    <div id="swres" style="text-align:center;font-size:.78rem;height:22px;margin-top:10px"></div>
+  `;
+}
+window.swToggle = function(i){
+  S.switches[i] = !S.switches[i];
+  // Update lever mesh
+  const lv = switchLevers[i];
+  if(lv){
+    lv.position.y = S.switches[i] ? 2.35 : 2.05;
+    lv.material.color.set(S.switches[i] ? 0x44cc66 : 0x334466);
+    lv.material.emissive = new THREE.Color(S.switches[i] ? 0x00aa33 : 0x000000);
+    lv.material.emissiveIntensity = S.switches[i] ? 1.0 : 0;
+  }
+  // Update LED
+  const led = scene.getObjectByName('led'+i);
+  if(led){
+    led.material = new THREE.MeshStandardMaterial({
+      color: S.switches[i] ? 0x002200 : 0x1a0000,
+      emissive: new THREE.Color(S.switches[i] ? 0x00cc44 : 0xcc2200),
+      emissiveIntensity: 1.5
+    });
+  }
+  // Check solution
+  const solved = SWITCH_SOL.every((v,j)=>v===S.switches[j]);
+  if(solved){
+    S.switchesSolved=true;
+    checkObj();
+    document.getElementById('minner').innerHTML=switchHtml();
+    setTimeout(()=>{ document.getElementById('swres').innerHTML='<span class="ok">✓ POWER RESTORED — ESCAPE POD ONLINE</span>'; },50);
+    // Glow launch button
+    if(launchBtnMesh){ launchBtnMesh.material.emissive.set(0x00ff44); launchBtnMesh.material.emissiveIntensity=2.5; }
+    setTimeout(closeModal, 1600);
+  } else {
+    document.getElementById('minner').innerHTML=switchHtml();
+  }
+};
+
+// ── Escape pod ─────────────────────────────────────
+function doPod(){
+  if(!S.switchesSolved && !S.keycardFound){
+    openModal(`<h2>⬡ ESCAPE POD CONSOLE</h2>
+      <p class="warn">⚠ POWER OFFLINE &amp; AUTHORIZATION REQUIRED.</p>
+      <p>Restore bridge power switches and locate a Level-2 keycard.</p>`);
+    return;
+  }
+  if(!S.switchesSolved){
+    openModal(`<h2>⬡ ESCAPE POD CONSOLE</h2>
+      <p class="warn">⚠ POWER OFFLINE — Cannot initiate launch sequence.</p>
+      <p>Configure the power distribution switches on the north wall of the Bridge.</p>`);
+    return;
+  }
+  if(!S.keycardFound){
+    openModal(`<h2>⬡ ESCAPE POD CONSOLE</h2>
+      <p class="warn">⚠ AUTHORIZATION REQUIRED — Keycard not detected.</p>
+      <p>Find a Level-2 security keycard. Search the Research Lab thoroughly.</p>`);
+    return;
+  }
+  // WIN
+  openModal(`
+    <h2 class="ok">✓ ESCAPE SEQUENCE INITIATED</h2>
+    <p>Keycard accepted. All systems nominal. Launching pod in T-3...</p>
+    <div style="text-align:center;font-size:2.5rem;margin:20px 0;color:#64ff96;letter-spacing:.4em;font-weight:bold">3 &nbsp; 2 &nbsp; 1</div>
+  `);
+  setTimeout(()=>{ closeModal(); triggerWin(); }, 2800);
+}
+
+// ── Win ────────────────────────────────────────────
+function triggerWin(){
+  S.escaped=true;
+  checkObj();
+  const w=document.getElementById('win');
+  w.style.display='flex';
+  setTimeout(()=>w.classList.add('on'),50);
+}
+
+// ── Inventory ──────────────────────────────────────
+function addToInventory(label, icon){
+  S.inventory.push({label,icon});
+  refreshInventory();
+}
+function refreshInventory(){
+  S.inventory.forEach((item,i)=>{
+    const el=document.getElementById('s'+i);
+    if(el){ el.innerHTML=`<span class="icon">${item.icon}</span><span>${item.label}</span>`; el.classList.add('has'); }
+  });
+}
+
+// ── Objectives ─────────────────────────────────────
+function checkObj(){
+  if(S.cipherRead)       document.getElementById('ob1').classList.add('done');
+  if(S.doorOpen)         document.getElementById('ob2').classList.add('done');
+  if(S.keycardFound)     document.getElementById('ob3').classList.add('done');
+  if(S.switchesSolved)   document.getElementById('ob4').classList.add('done');
+  if(S.escaped)          document.getElementById('ob5').classList.add('done');
+
+  const rl = document.getElementById('rlabel');
+  if(rl && camera.position.x > 0) rl.textContent = 'SECTOR 08 — BRIDGE';
+  else if(rl) rl.textContent = 'SECTOR 01 — RESEARCH LAB';
+}
+
+// ── Hint ───────────────────────────────────────────
+function showHint(){
+  let h='';
+  if(!S.cipherRead)         h='Check the glowing panel on the <b>north wall</b> of the Research Lab. It contains a cipher key.';
+  else if(!S.doorOpen)      h='Decode ▲◆●★ using the cipher key (7 3 8 2). Enter <b>7382</b> at the keypad near the sector door.';
+  else if(!S.keycardFound)  h='Explore the <b>south wall</b> of the Research Lab — a ventilation panel looks like it might be loose.';
+  else if(!S.switchesSolved)h='The terminal shows the required switch pattern: <b>UP · DOWN · UP · UP</b>. Find the switch panel on the north wall of the Bridge.';
+  else                      h='You have the keycard and the power is restored. Go to the <b>escape pod console</b> on the east wall of the Bridge.';
+  openModal(`<h2>💡 HINT</h2><p>${h}</p>`);
+}
+
+// ── Loop ───────────────────────────────────────────
+function loop(){
+  requestAnimationFrame(loop);
+  const dt=Math.min(clock.getDelta(),.05);
+  elTime+=dt; flickT+=dt;
+
+  movePlayer(dt);
+  updateHover();
+
+  // Emergency light flicker
+  if(flickT > .08+Math.random()*.25){
+    emergencyLight.intensity = .4+Math.random()*2.8;
+    flickT=0;
+  }
+
+  // Camera walk bob
+  if(locked && !S.modalOpen && (mF||mB||mL||mR)){
+    camera.position.y = 1.7 + Math.sin(elTime*6.5)*.028 + Math.abs(Math.sin(elTime*3.25))*.012;
+  } else {
+    camera.position.y = 1.7;
+  }
+
+  // Room label update
+  if(!S.modalOpen) checkObj();
+
+  renderer.render(scene, camera);
+}
+
+// ── Start ──────────────────────────────────────────
+document.getElementById('startBtn').addEventListener('click', ()=>{
+  document.getElementById('start').classList.add('gone');
+  document.getElementById('ui').classList.add('on');
+  renderer.domElement.requestPointerLock();
+});
+
+window.closeModal = closeModal;
+window.showHint   = showHint;
+
+init();
+</script>
+</body>
+</html>

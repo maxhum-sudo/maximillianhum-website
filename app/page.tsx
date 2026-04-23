@@ -17,7 +17,7 @@ async function getProjects(): Promise<Project[]> {
 export default async function Home() {
   const projects = await getProjects();
   const blogPosts = await getAllBlogPosts();
-  const featuredProjects = projects.slice(0, 3);
+  const featuredProjects = [...projects].reverse().slice(0, 3);
   const recentPosts = blogPosts.slice(0, 3);
 
   return (

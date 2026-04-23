@@ -40,5 +40,19 @@
     "link": "/buyorrent",
     "image": "/projects/BuyorRentScreenshot.png",
     "tags": ["React", "Next.js", "TypeScript"]
+  },
+  {
+    "name": "Project 7: lawsofproductmanagement.com",
+    "description": "A reference site of product management laws, principles, and heuristics for discovering, building, and shipping great products.",
+    "link": "https://lawsofproductmanagement.com",
+    "image": "/projects/LawsOfProductManagement-Screenshot.png",
+    "tags": ["Product Management", "Writing"]
+  },
+  {
+    "name": "Project 8: Escape Room",
+    "description": "A small browser-based escape room built with Three.js.",
+    "link": "/escaperoom",
+    "image": "/projects/EscapeRoom-Screenshot.png",
+    "tags": ["HTML", "JavaScript", "Three.js"]
   }
 ]
