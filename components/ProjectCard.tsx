@@ -48,17 +48,30 @@ export default function ProjectCard({ project }: ProjectCardProps) {
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition-shadow overflow-hidden h-full flex flex-col">
       {project.image && (
-        <div className="relative w-full h-48">
+        <Link
+          href={project.link}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={`Open ${project.name}`}
+          className="relative w-full h-48 block"
+        >
           <img
             src={getImageSrc(project.image)}
             alt={project.name}
             className="absolute inset-0 w-full h-full object-cover"
           />
-        </div>
+        </Link>
       )}
       <div className="p-6 flex-grow flex flex-col">
         <h3 className="text-xl font-bold mb-2 text-gray-900 dark:text-white">
-          {project.name}
+          <Link
+            href={project.link}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:underline"
+          >
+            {project.name}
+          </Link>
         </h3>
         <p className="text-gray-700 dark:text-gray-300 mb-4 flex-grow">
           {project.description}

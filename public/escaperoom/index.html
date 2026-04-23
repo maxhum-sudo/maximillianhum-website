@@ -787,14 +787,21 @@ function setupControls() {
 
   // Drag-to-look (no pointer lock needed)
   const cv = renderer.domElement;
+  document.addEventListener('pointerlockchange', () => {
+    locked = document.pointerLockElement === cv;
+  });
+
   cv.addEventListener('mousedown', e=>{
     if(e.button===0 && !S.modalOpen){ dragging=true; lastMX=e.clientX; lastMY=e.clientY; }
   });
   document.addEventListener('mouseup',  ()=>{ dragging=false; });
   document.addEventListener('mousemove', e=>{
-    if(!dragging || S.modalOpen) return;
-    const dx=e.clientX-lastMX, dy=e.clientY-lastMY;
-    lastMX=e.clientX; lastMY=e.clientY;
+    if(S.modalOpen) return;
+    if(!dragging && !locked) return;
+    const dx = locked ? e.movementX : (e.clientX - lastMX);
+    const dy = locked ? e.movementY : (e.clientY - lastMY);
+    lastMX = e.clientX;
+    lastMY = e.clientY;
     yaw   -= dx * .004;
     pitch -= dy * .004;
     pitch = Math.max(-1.1, Math.min(1.1, pitch));
