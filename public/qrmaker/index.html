@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>QR Maker</title>
+    <meta name="description" content="Enter a link, get a QR code, download it." />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="app" aria-label="QR Maker">
+      <header class="header">
+        <h1 class="title">QR Maker</h1>
+        <p class="subtitle">Enter a link, get a QR code, download it.</p>
+      </header>
+
+      <section class="panel" aria-label="QR input">
+        <label class="label" for="textInput">Link</label>
+        <div class="row">
+          <input
+            id="textInput"
+            class="input"
+            type="url"
+            inputmode="url"
+            autocomplete="url"
+            placeholder="https://example.com"
+            aria-describedby="errorText"
+          />
+          <button id="generateBtn" class="button primary" type="button">
+            Generate
+          </button>
+        </div>
+        <p id="errorText" class="error" role="status" aria-live="polite"></p>
+      </section>
+
+      <section class="panel" aria-label="QR output">
+        <div class="qrWrap">
+          <div id="qrContainer" class="qrContainer" aria-label="QR code output"></div>
+        </div>
+        <div class="row">
+          <button id="downloadBtn" class="button" type="button" disabled>
+            Download PNG
+          </button>
+        </div>
+      </section>
+
+      <footer class="footer">
+        <span class="muted">Runs entirely in your browser.</span>
+      </footer>
+    </main>
+
+    <!-- QR library (vendored for offline/local reliability) -->
+    <script src="./vendor/qrcode.js"></script>
+    <script src="./app.js"></script>
+  </body>
+</html>
+

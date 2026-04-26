@@ -54,5 +54,11 @@
     "link": "/escaperoom",
     "image": "/projects/EscapeRoom-Screenshot.png",
     "tags": ["HTML", "JavaScript", "Three.js"]
+  },
+  {
+    "name": "Project 9: QR Code Maker",
+    "description": "Enter a link, generate a QR code, and download it as a PNG — runs entirely in your browser.",
+    "link": "/qrmaker",
+    "tags": ["HTML", "CSS", "JavaScript"]
   }
 ]
