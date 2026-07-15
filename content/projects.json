@@ -60,5 +60,12 @@
     "description": "Enter a link, generate a QR code, and download it as a PNG — runs entirely in your browser.",
     "link": "/qrmaker",
     "tags": ["HTML", "CSS", "JavaScript"]
+  },
+  {
+    "name": "Project 10: Windchime",
+    "description": "An interactive poetry site with verses from China, India, and Cambodia. Move your cursor and the text responds; click once to awaken wind chimes.",
+    "link": "https://maxhum-sudo.github.io/Windchime/",
+    "image": "/projects/Windchime-Screenshot.png",
+    "tags": ["HTML", "CSS", "JavaScript"]
   }
 ]
