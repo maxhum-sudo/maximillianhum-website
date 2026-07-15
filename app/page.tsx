@@ -47,7 +47,7 @@ export default async function Home() {
               View All →
             </Link>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="polaroid-grid">
             {featuredProjects.map((project, index) => (
               <ProjectCard key={index} project={project} />
             ))}

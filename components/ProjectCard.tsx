@@ -44,60 +44,41 @@ interface ProjectCardProps {
   project: Project;
 }
 
-export default function ProjectCard({ project }: ProjectCardProps) {
-  return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition-shadow overflow-hidden h-full flex flex-col">
-      {project.image && (
-        <Link
-          href={project.link}
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label={`Open ${project.name}`}
-          className="relative w-full h-48 block"
-        >
-          <img
-            src={getImageSrc(project.image)}
-            alt={project.name}
-            className="absolute inset-0 w-full h-full object-cover"
-          />
-        </Link>
-      )}
-      <div className="p-6 flex-grow flex flex-col">
-        <h3 className="text-xl font-bold mb-2 text-gray-900 dark:text-white">
-          <Link
-            href={project.link}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hover:underline"
-          >
-            {project.name}
-          </Link>
-        </h3>
-        <p className="text-gray-700 dark:text-gray-300 mb-4 flex-grow">
-          {project.description}
-        </p>
-        {project.tags && project.tags.length > 0 && (
-          <div className="flex flex-wrap gap-2 mb-4">
-            {project.tags.map((tag) => (
-              <span
-                key={tag}
-                className="px-2 py-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded"
-              >
-                {tag}
-              </span>
-            ))}
-          </div>
-        )}
-        <Link
-          href={project.link}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-block text-blue-600 dark:text-blue-400 hover:underline font-medium"
-        >
-          View Project →
-        </Link>
-      </div>
-    </div>
-  );
+function displayName(name: string) {
+  return name.replace(/^Project\s+\d+:\s*/i, '');
 }
 
+export default function ProjectCard({ project }: ProjectCardProps) {
+  const title = displayName(project.name);
+  const entryLabel = project.tags?.[0] ?? 'Project';
+
+  return (
+    <Link
+      href={project.link}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="polaroid-card"
+      aria-label={`Open ${title}`}
+    >
+      <span className="polaroid-tape" aria-hidden="true" />
+      <div className="polaroid-thumb">
+        {project.image ? (
+          <img
+            src={getImageSrc(project.image)}
+            alt=""
+            className="polaroid-thumb-img"
+          />
+        ) : (
+          <div className="polaroid-thumb-fallback">
+            <span>{title.slice(0, 1)}</span>
+          </div>
+        )}
+      </div>
+      <div className="polaroid-meta">
+        <p className="polaroid-entry">{entryLabel}</p>
+        <h3 className="polaroid-caption">{title}</h3>
+        <p className="polaroid-label">{project.description}</p>
+      </div>
+    </Link>
+  );
+}
